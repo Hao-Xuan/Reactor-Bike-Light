@@ -1,26 +1,22 @@
 # Reactor Bike Light
-Overview of Project Design and Implementation
-
----
-## Description
-The Reactor Bike Light is a sensor-driven embedded lighting system for bicycles that uses real-time motion estimates to control a pair of LED arrays. The system detects motion such as braking, turning, and crashing and automatically communicates those motions to nearby traffic with familiar light signals. The device may be operated in three modes: tail light mode is red, head light mode is white, and the unique ground light mode creates a splash of jewel-tone color on the ground around the bicycle. A companion mobile app expands the user interface and enhances the safety features of the system.
+The Reactor Bike Light is a sensor-driven embedded lighting system for bicycles that uses real-time motion estimates to control a pair of LED arrays. The system detects motion such as braking, turning, and crashing and automatically communicates those motions to nearby traffic using the familiar light signals. The device may be operated in three modes: tail light mode is red, head light mode is white, and the unique ground light mode creates a splash of jewel-tone color on the ground around the bicycle. A companion mobile app expands the user interface and enhances the safety features of the system.
 
 ---
 ## Architecture
+<img width="1390" height="733" alt="reactor_Block_Diagram" src="https://github.com/user-attachments/assets/680843c3-795f-4f19-ab16-61f0f2a79f4a" />
+
+
 ### Overview
 The embedded system is implemented on a multicore microcontroller operating separate cores for sensor acquisition, motion processing, main control, BLE communication, and LED control. These modules share data via buffers stored in the microcontroller's main RAM. Access to the buffers is restricted by hardware locks to ensure that data is transferred with no collisions.
-
-<img width="1412" height="796" alt="reactor_Block_Diagram" src="https://github.com/user-attachments/assets/3f4e6401-6ad6-4f79-9e8f-0cbd47437bff" />
-
 #
 ### Sensors
-The sensor core acquires data from three sensor arrays. Battery voltage is measured by timing the input of a sigma-delta ADC circuit. User input is detected by timing the activation of touch sensors on the left and right sides of the device. Acceleration, angular velocity, and temperature measurements are acquired over I2C from an IMU.
+The sensor core acquires data from three sensor arrays. Battery voltage is measured on the accumulator of a sigma-delta ADC circuit. User input is detected by timing the activation of touch sensors on the sides of the device. Acceleration, angular velocity, and temperature measurements are acquired over I2C from an IMU.
 #
 ### DMP
-The motion processing core applies digital filtering and sensor fusion to combine the accelerometer and gyroscope data into a low-noise estimate of the spatial orientation of the IMU sensor. This estimate is rotated into the bicycle's frame of reference and recombined with the raw data to produce a real-time estimate of the bicycle's orientation, acceleration, and turn-rate in the rider's space.
+The motion processing core applies digital filtering and sensor fusion to combine the accelerometer and gyroscope data into an estimate of the spatial orientation of the IMU sensor. This estimate is rotated into the bicycle's frame of reference and recombined with the raw data to produce a real-time estimate of the bicycle's orientation, acceleration, and turn-rate in the rider's space.
 #
 ### Main
-The main control core feeds the state of motion, user input, battery voltage, and device temperature to a set of finite state machines that perform the system's motion detection, touch state, power management, and LED control functions. The main core is also responsible for system startup and load/save operations.
+The main control core feeds the motion estimate, user input, battery voltage, and device temperature to a set of finite state machines that perform the system's motion detection, touch state, power management, and LED control functions. The main core is also responsible for system startup and load/save operations.
 #
 ### LED
 The LED rendering core programs a left/right pair of LED arrays according to its operation mode, motion detection, and settings for strobe and brightness.
@@ -34,9 +30,9 @@ The Reactor mobile app provides a convenient plaform for the user to manage and 
 ---
 ## Engineering Challenges
   + Real-time responsiveness constraints
-  + Sensor Noise and Filtering
+  + Sensor noise and filtering
   + Long-term reliability
-  + BLE Data Integrity
+  + BLE data integrity
 
 ---
 ## Key Design Decisions
