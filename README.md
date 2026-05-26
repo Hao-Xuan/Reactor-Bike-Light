@@ -35,12 +35,16 @@ The Reactor mobile app provides a convenient plaform for the user to manage and 
   + BLE data integrity
 
 ---
-## Key Design Decisions
-  +
+## Key Design Tradeoffs
+  + Kalman vs complementary filter
+  + Multicore vs RTOS
+  + Repsonsiveness vs accuracy
+  + Reliability vs cost
 ---
 ## Test & Debug Methods
-  +
----
-## Future Improvements
-  +
+  + Timing verification
+  + Core stack usage
+  + Fault injection
+  + Debugger logs
+  + Oscilloscope and DMM
 ---
