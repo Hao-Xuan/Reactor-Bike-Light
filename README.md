@@ -1,11 +1,10 @@
 # Reactor Bike Light
-Reactor Bike Light is a real-time embedded lighting system for bicycles built on a multicore microcontroller architecture. The system uses IMU-based motion estimation and sensor fusion to detect braking, turning, and crash events and communicate them through adaptive LED behavior and BLE connectivity.
-The device may be operated in three modes: tail light mode is red, head light mode is white, and the unique ground light mode creates a splash of color on the ground around the bicycle.
+Reactor Bike Light is a real-time embedded lighting system for bicycles built on a multicore microcontroller architecture. The system uses IMU-based motion estimation and sensor fusion to detect braking, turning, and crash events, communicating them through adaptive LED behavior and BLE connectivity. The device supports three modes: tail light mode uses red illumination, head light mode uses white, and the unique ground light mode projects dynamic color patterns onto the ground around the bicycle.
 
 ### Technical Highlights
   + Multicore real-time embedded architecture
   + IMU-based motion estimation with sensor fusion
-  + Finite state machines determine light reactions from motion
+  + Finite state machines for motion-reactive lighting control
   + BLE communications with CRC-validated firmware updates
 ---
 ## Architecture
@@ -13,25 +12,25 @@ The device may be operated in three modes: tail light mode is red, head light mo
 
 #
 ### Overview
-The embedded system operates separate cores for sensor acquisition, motion processing, main control, BLE communication, and LED control. These modules share data via buffers stored in the microcontroller's main RAM. Access to the buffers is restricted by hardware locks to ensure that data is transferred with no collisions.
-#
+The embedded system operates separate cores for sensor acquisition, motion processing, main control, BLE communication, and LED control. These modules exchange data through buffers stored in main memory. Access to shared resources is synchronized using hardware locks to prevent concurrent access conflicts.
+
 ### Sensors
 The sensor core acquires data from three sensor arrays. Battery voltage is measured on the accumulator of a sigma-delta ADC circuit. User input is detected by timing the activation of touch sensors on the sides of the device. Acceleration, angular velocity, and temperature measurements are acquired over I2C from an IMU.
-#
+
 ### DMP
-The motion processing core applies digital filtering and sensor fusion to combine the accelerometer and gyroscope data into an estimate of the spatial orientation of the IMU sensor. This estimate is rotated into the bicycle's frame of reference and recombined with the raw data to produce a real-time estimate of the bicycle's orientation, acceleration, and turn-rate in the rider's space.
-#
+The motion processing core applies digital filtering and sensor fusion to combine the accelerometer and gyroscope data into an estimate of sensor orientation. This estimate is transformed into the bicycle's frame of reference and combined with the filtered IMU measurements to calculate orientation, acceleration, and turn-rate in rider space.
+
 ### Main
-The main control core feeds the motion estimate, user input, battery voltage, and device temperature to a set of finite state machines that perform the system's motion detection, touch state, power management, and LED control functions. The main core is also responsible for system startup and load/save operations.
-#
+The main control core feeds the motion estimate, user input, battery voltage, and device temperature into a set of finite state machines responsible for motion detection, touch state, power management, and lighting behavior. The main core also manages system startup and persistent load/save operations.
+
 ### LED
-The LED rendering core programs a left/right pair of LED arrays according to its operation mode, motion detection, and settings for strobe and brightness.
-#
+The LED rendering core drives the left and right LED arrays according to motion detection state, operation mode, brightness settings, and strobe configuration.
+
 ### BLE
-The BLE control core manages serial communications between main control and the external BLE radio module over UART. Data packets are received from the linked mobile app and verified by CRC before being used to control user settings and update firmware. Motion reactions and local changes to user settings are encoded and written to the BLE characteristics to notify the app.
-#
+The BLE control core manages UART communications between the main control core and the external BLE radio module. Incoming packets from the mobile app are verified with CRC before being applied to user settings or firmware updates. Motion events and local setting changes are encoded and transmitted through BLE characteristics to synchronize the connected app.
+
 ### App
-The Reactor mobile app provides a convenient platform for the user to manage and synchronize the settings of multiple connected devices mounted to the bicycle. Users can select turn signals and warning flashers by touch or voice control, monitor battery voltage and device temperature, and automatically notify selected phone contacts with GPS location data when a crash is detected. The user may download firmware updates from the app to the device, where they are verified before being installed.
+The Reactor mobile app provides centralized configuration and monitoring for multiple connected devices mounted to the bicycle. Users can activate turn signals and warning flashers through touch or voice control, monitor battery voltage and device temperature, and automatically notify selected contacts with GPS location data when a crash is detected. Firmware updates are transferred wirelessly through the app and verified before installation.
 
 ---
 ## Engineering Challenges
@@ -49,10 +48,10 @@ Maintaining consistent real-time behavior required careful attention to timing a
 The BLE communication subsystem was designed to support telemetry, user control, and firmware updates while remaining robust against interruptions and corrupted data. CRC validation and resumable transfer mechanisms were implemented to improve reliability during firmware updates. Additional buffering and verification logic were added to reduce the likelihood of communication failures during long-duration operation.
 
 ---
-## Test & Debug Methods
-  + Timing verification
-  + Core stack usage
-  + Fault injection
-  + Debugger logs
-  + Oscilloscope and DMM
+## Validation & Debugging
+  + GPIO timing instrumentation
+  + Stack usage analysis
+  + Fault injection testing
+  + Runtime debugger logging
+  + Oscilloscope and DMM verification
 ---
