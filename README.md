@@ -8,7 +8,7 @@ Reactor Bike Light is a real-time embedded lighting system for bicycles built on
   + BLE communications with CRC-validated firmware updates
 ---
 ## Architecture
-<img width="1382" height="710" alt="reactor_Block_Diagram" src="https://github.com/user-attachments/assets/53963840-a915-4f46-a7e2-8597dd7e6fc2" />
+<img width="1387" height="715" alt="reactor_Block_Diagram" src="https://github.com/user-attachments/assets/181189e6-4c52-4d8e-ba44-052b4c1bbbd0" />
 
 #
 ### Overview
