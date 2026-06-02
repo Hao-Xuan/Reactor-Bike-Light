@@ -49,9 +49,10 @@ The BLE communication subsystem was designed to support telemetry, user control,
 
 ---
 ## Validation & Debugging
-  + GPIO timing instrumentation
-  + Stack usage analysis
-  + Fault injection testing
-  + Runtime debugger logging
-  + Oscilloscope and DMM verification
+<img width="982" height="555" alt="IMU_Data_Access_Synchronization" src="https://github.com/user-attachments/assets/543ca6a2-25a4-4dc4-9dbf-aea3fbfea5ef" />
+GPIO instrumentation used to measure execution timing and verify synchronization between sensor acquisition and motion processing pipelines. Vertical markers show a loop frequency of 50 Hz, as intended.
+
+<img width="982" height="555" alt="I2C_Clock_Frequency_Validation" src="https://github.com/user-attachments/assets/351215ed-4445-41a1-a37e-5fb229366f09" />
+GPIO intstrumentation used to measure and validate I2C communications driver. Vertical markers show a clock frequency of 64 kHz, as intended.
+
 ---
