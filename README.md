@@ -10,7 +10,6 @@ Reactor Bike Light is a real-time embedded lighting system for bicycles built on
 ## Architecture
 <img width="1387" height="715" alt="reactor_Block_Diagram" src="https://github.com/user-attachments/assets/181189e6-4c52-4d8e-ba44-052b4c1bbbd0" />
 
-#
 ### Overview
 The embedded system operates separate cores for sensor acquisition, motion processing, main control, BLE communication, and LED control. These modules exchange data through buffers stored in main memory. Access to shared resources is synchronized using hardware locks to prevent concurrent access conflicts.
 
@@ -49,10 +48,30 @@ The BLE communication subsystem was designed to support telemetry, user control,
 
 ---
 ## Validation & Debugging
-<img width="982" height="555" alt="IMU_Data_Access_Synchronization" src="https://github.com/user-attachments/assets/543ca6a2-25a4-4dc4-9dbf-aea3fbfea5ef" />
-GPIO instrumentation used to measure execution timing and verify synchronization between sensor acquisition and motion processing pipelines. Vertical markers show a loop frequency of 50 Hz, as intended.
 
-<img width="982" height="555" alt="I2C_Clock_Frequency_Validation" src="https://github.com/user-attachments/assets/351215ed-4445-41a1-a37e-5fb229366f09" />
-GPIO intstrumentation used to measure and validate I2C communications driver. Vertical markers show a clock frequency of 64 kHz, as intended.
+### Synchronization of sensor acqusition and motion processing pipeline
+
+Critical inter-core communication paths were instrumented using GPIO markers and verified on hardware with an oscilloscope. The traces below validate both synchronization between processing stages and the latency of data transfer between Sensor and DMP cores.
+
+#### Figure 1 - Validation of synchronized data handoff between sensor and DMP cores
+<img width="982" height="555" alt="_IMU_Data_Access_Synchronization" src="https://github.com/user-attachments/assets/2cb19611-586f-4123-9d04-a018276767ae" />
+
+(1) Sensor core acquisition cycle begins, (2)  new IMU sample committed to shared memory, (3) DMP core consumes new sample, (4) new motion estimate committed to shared memory
+
+#### Figure 2 - Inter-core data transfer latency
+<img width="982" height="555" alt="_IMU_Data_Access_Latency" src="https://github.com/user-attachments/assets/e0bd5b8e-ec2f-4647-b09a-53cf6aa06fc7" />
+
+(1) Sensor core commits new IMU sample to shared memory, (2) DMP core copies new sample approximately 200 us later
+
+#
+
+### Custom I2C implementation
+
+Because the Propeller P8X32A lacks a dedicated I2C peripheral, a bare-metal driver was implemented in Propeller assembly (PASM). Oscilloscope captures were used to verify protocol timing and reliable data transfer.
+
+#### Figure 3 - Validation of assembly-language I2C driver
+<img width="982" height="555" alt="_I2C_Clock_Frequency_Validation" src="https://github.com/user-attachments/assets/1fa7396d-408c-421b-87d6-4f1703834747" />
+
+(1) Start condition placed on I2C bus, (2) address, command, and acknowledgement phase begins, (3) data transfer begins 
 
 ---
