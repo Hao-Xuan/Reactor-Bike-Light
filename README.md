@@ -47,23 +47,35 @@ Maintaining consistent real-time behavior required careful attention to timing a
 The BLE communication subsystem was designed to support telemetry, user control, and firmware updates while remaining robust against interruptions and corrupted data. CRC validation and resumable transfer mechanisms were implemented to improve reliability during firmware updates. Additional buffering and verification logic were added to reduce the likelihood of communication failures during long-duration operation.
 
 ---
-## Validation & Debugging
+## Debugging & Validation
 
-### Synchronization of sensor acqusition and motion processing pipeline
+Development emphasized measurement-driven debugging and systematic verification throughout the hardware and firmware stack.
+
+- GPIO instrumentation and oscilloscope analysis for execution-time measurement and latency characterization
+- Verification of custom communication protocols using oscilloscope and logic analyzer measurements
+- Long-duration reliability testing to identify rollover, synchronization, and state-machine failures
+- Structured telemetry and event logging for root-cause analysis of intermittent faults
+- Incremental integration testing of sensing, processing, communication, and rendering subsystems
+- Validation of motion-estimation algorithms using controlled test conditions
+- Power profiling and optimization for battery-operated deployment
+- Firmware-update fault injection and recovery testing
+- End-to-end verification of timing, communication, and data integrity requirements
+
+Some examples are shown below.
+
+### Synchronization of sensor acquisition and motion processing pipeline
 
 Critical inter-core communication paths were instrumented using GPIO markers and verified on hardware with an oscilloscope. The traces below validate both synchronization between processing stages and the latency of data transfer between Sensor and DMP cores.
 
 #### Figure 1 - Validation of synchronized data handoff between sensor and DMP cores
 <img width="982" height="555" alt="_IMU_Data_Access_Synchronization" src="https://github.com/user-attachments/assets/2cb19611-586f-4123-9d04-a018276767ae" />
 
-(1) Sensor core acquisition cycle begins, (2)  new IMU sample committed to shared memory, (3) DMP core consumes new sample, (4) new motion estimate committed to shared memory
+(1) Sensor acquisition cycle begins, (2) new IMU sample committed to shared memory, (3) DMP core consumes new sample, (4) updated motion estimate committed to shared memory
 
 #### Figure 2 - Inter-core data transfer latency
 <img width="982" height="555" alt="_IMU_Data_Access_Latency" src="https://github.com/user-attachments/assets/e0bd5b8e-ec2f-4647-b09a-53cf6aa06fc7" />
 
 (1) Sensor core commits new IMU sample to shared memory, (2) DMP core copies new sample approximately 200 us later
-
-#
 
 ### Custom I2C implementation
 
@@ -72,6 +84,15 @@ Because the Propeller P8X32A lacks a dedicated I2C peripheral, a bare-metal driv
 #### Figure 3 - Validation of assembly-language I2C driver
 <img width="982" height="555" alt="_I2C_Clock_Frequency_Validation" src="https://github.com/user-attachments/assets/1fa7396d-408c-421b-87d6-4f1703834747" />
 
-(1) Start condition placed on I2C bus, (2) address, command, and acknowledgement phase begins, (3) data transfer begins 
+(1) START condition generated, (2) address and acknowledgement phase begins, (3) data transfer begins 
+
+### Physical layer
+
+The bike light design required custom electronic and mechanical hardware, all of which was designed together using standard schematic capture, PCB layout, 3D modeling, and simulation techniques. Several design iterations resulted in a compact, industrial, reliable prototype.
+
+#### Figure 4 - Physical prototypes
+<img width="1164" height="951" alt="reactor_Real" src="https://github.com/user-attachments/assets/6b279692-ac06-4bf4-9000-5de673d60ea8" />
+
+Completed enclosure, populated control PCB, and illuminated prototype hardware. The system integrates custom electronics, multicore firmware, BLE communications, IMU sensing, and motion-reactive LED control into a battery-powered bicycle lighting platform.
 
 ---
