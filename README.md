@@ -8,7 +8,7 @@ Reactor Bike Light is a real-time embedded lighting system for bicycles built on
   + BLE communications with CRC-validated firmware updates
 ---
 ## Architecture
-<img width="1387" height="715" alt="reactor_Block_Diagram" src="https://github.com/user-attachments/assets/181189e6-4c52-4d8e-ba44-052b4c1bbbd0" />
+<img width="1387" height="715" alt="reactor_architecture" src="https://github.com/user-attachments/assets/2a8e6289-25fc-4531-a36a-915c486eec51" />
 
 ### Overview
 The embedded system operates separate cores for sensor acquisition, motion processing, main control, BLE communication, and LED control. These modules exchange data through buffers stored in main memory. Access to shared resources is synchronized using hardware locks to prevent concurrent access conflicts.
@@ -68,12 +68,12 @@ Some examples are shown below.
 Critical inter-core communication paths were instrumented using GPIO markers and verified on hardware with an oscilloscope. The traces below validate both synchronization between processing stages and the latency of data transfer between Sensor and DMP cores.
 
 #### Figure 1 - Validation of synchronized data handoff between sensor and DMP cores
-<img width="982" height="555" alt="_IMU_Data_Access_Synchronization" src="https://github.com/user-attachments/assets/2cb19611-586f-4123-9d04-a018276767ae" />
+<img width="982" height="555" alt="validation_ipc_synchronization" src="https://github.com/user-attachments/assets/6932a127-fd3c-4026-a6a7-9449c2137f9f" />
 
 (1) Sensor acquisition cycle begins, (2) new IMU sample committed to shared memory, (3) DMP core consumes new sample, (4) updated motion estimate committed to shared memory
 
 #### Figure 2 - Inter-core data transfer latency
-<img width="982" height="555" alt="_IMU_Data_Access_Latency" src="https://github.com/user-attachments/assets/e0bd5b8e-ec2f-4647-b09a-53cf6aa06fc7" />
+<img width="982" height="555" alt="validation_ipc_latency" src="https://github.com/user-attachments/assets/ad37efea-af8c-4bf4-ae77-b05aada6f5f8" />
 
 (1) Sensor core commits new IMU sample to shared memory, (2) DMP core copies new sample approximately 200 us later
 
@@ -82,7 +82,7 @@ Critical inter-core communication paths were instrumented using GPIO markers and
 Because the Propeller P8X32A lacks a dedicated I2C peripheral, a bare-metal driver was implemented in Propeller assembly (PASM). Oscilloscope captures were used to verify protocol timing and reliable data transfer.
 
 #### Figure 3 - Validation of assembly-language I2C driver
-<img width="982" height="555" alt="_I2C_Clock_Frequency_Validation" src="https://github.com/user-attachments/assets/1fa7396d-408c-421b-87d6-4f1703834747" />
+<img width="982" height="555" alt="validation_i2c_protocol" src="https://github.com/user-attachments/assets/00555a53-0b94-462f-89ff-8dc0341a7f55" />
 
 (1) START condition generated, (2) address and acknowledgement phase begins, (3) data transfer begins 
 
@@ -90,8 +90,8 @@ Because the Propeller P8X32A lacks a dedicated I2C peripheral, a bare-metal driv
 
 The bike light design required custom electronic and mechanical hardware, all of which was designed together using standard schematic capture, PCB layout, 3D modeling, and simulation techniques. Several design iterations resulted in a compact, industrial, reliable prototype.
 
-#### Figure 4 - Physical prototypes
-<img width="1164" height="951" alt="reactor_Real" src="https://github.com/user-attachments/assets/6b279692-ac06-4bf4-9000-5de673d60ea8" />
+#### Figure 4 - Physical prototype
+<img width="1164" height="951" alt="reactor_physical" src="https://github.com/user-attachments/assets/8b68d90d-0faf-4ba7-8091-087c0641ac89" />
 
 Completed enclosure, populated control PCB, and illuminated prototype hardware. The system integrates custom electronics, multicore firmware, BLE communications, IMU sensing, and motion-reactive LED control into a battery-powered bicycle lighting platform.
 
