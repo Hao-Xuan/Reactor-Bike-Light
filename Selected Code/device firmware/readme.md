@@ -6,7 +6,7 @@ Included modules:
 
 * Main control core - reactor_Main
 * Sensor acquisition core - reactor_Sensors
-* Motion processing (DMP) core - reactor_Fusion
+* Motion processing (DMP) core - reactor_DMP
 * LED rendering core - reactor_LED
 * BLE communication core - reactor_BLE
 
