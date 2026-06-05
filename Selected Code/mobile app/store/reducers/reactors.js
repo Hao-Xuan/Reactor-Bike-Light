@@ -183,6 +183,7 @@ const reactorsReducer = (state = initialState, action) => {
             updatedReactors[reactorIndex].therm = action.therm;
             updatedReactors[reactorIndex].firmware = action.firmware;
             updatedReactors[reactorIndex].updateProgress = action.updateProgress;
+            console.log("Reactors reducer - power on reactor:",updatedReactors[reactorIndex]);
             return {
                 ...state,
                 reactors: updatedReactors,
@@ -191,6 +192,7 @@ const reactorsReducer = (state = initialState, action) => {
             };
         case UPDATE_POWER_CONFIG:
             if (state.powerUpdateId) {
+                //console.log("Reactors reducer - skipping new power config update:", state.powerUpdateId);
                 return {
                     ...state
                 };
@@ -225,6 +227,7 @@ const reactorsReducer = (state = initialState, action) => {
             };
         case UPDATE_COLOR_CONFIG:
             if (state.colorUpdateId) {
+                //console.log("Reactors reducer - skipping new color config update:", state.colorUpdateId);
                 return {
                     ...state
                 };

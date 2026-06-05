@@ -41,12 +41,13 @@ import {
     updateOtaProgress
 } from "../../helpers/reactorsDB";
 
+
 const ble = new ReactorBLE();
-const reactorServiceUUID = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-const colorConfigUUID = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-const powerConfigUUID = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-const reactionsUUID = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-const otaUpdateUUID = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+const reactorServiceUUID = "0fcb45f5-8b2f-4cab-ade6-67ae2aa261e3";
+const colorConfigUUID = "043eecea-04ee-4ac0-b841-8493e963936c";
+const powerConfigUUID = "f862efcc-6f8f-4346-957e-1f9a57e87ef3";
+const reactionsUUID = "33ca0239-bfbf-43fd-9d7b-cf7f69ff548a";
+const otaUpdateUUID = "f7e418f8-2936-4d79-9aba-1db3d2f1a005";
 const deviceInformationServiceUUID = "180a";
 const hardwareRevisionUUID = "2a27";
 
@@ -204,7 +205,7 @@ export const updateVoiceStatus = (state) => {
 };
 
 export const updateScanStatus = (state) => {
-    //console.log("Reactors actions - updateScanStatus:", state);
+    console.log("Reactors actions - updateScanStatus:", state);
     return {
         type: UPDATE_SCAN_STATUS,
         status: state
@@ -212,7 +213,7 @@ export const updateScanStatus = (state) => {
 };
 
 export const cancelLink = () => {
-    //console.log("Reactors actions - cancel Reactor link...");
+    console.log("Reactors actions - cancel Reactor link...");
     return {
         type: UPDATE_NEW_REACTOR_ID,
         bleId: null
@@ -220,7 +221,7 @@ export const cancelLink = () => {
 };
 
 export const stopReactorScan = () => {
-    //console.log("Reactors actions - stop scanning for Reactors...");
+    console.log("Reactors actions - stop scanning for Reactors...");
     ble.stopScan();
     return { type: null };
 };
@@ -230,10 +231,10 @@ export const startReactorScan = () => {
         try {
             const bleState = await ble.getState();
             if (bleState === "PoweredOff") {
-                //console.log("Reactors actions - enabling Bluetooth Low-Energy...");
+                console.log("Reactors actions - enabling Bluetooth Low-Energy...");
                 await ble.enableBle();
             }
-            //console.log("Reactors actions - start scanning for Reactors...");
+            console.log("Reactors actions - start scanning for Reactors...");
             const isScanned = true;
             const bleId = await ble.scanForReactors();
             const dbReactors = await fetchReactors();
@@ -250,7 +251,7 @@ export const startReactorScan = () => {
                 });
             }
         } catch (err) {
-            //console.log("Reactors actions - scanReactors error:", err);
+            console.log("Reactors actions - scanReactors error:", err);
         }
     }
 };
@@ -258,7 +259,7 @@ export const startReactorScan = () => {
 export const linkReactor = (reactor, newReactorFlag) => {
     return async (dispatch) => {
         try {
-            //console.log("Reactors actions - initiating connection to Reactor:", reactor);
+            console.log("Reactors actions - initiating connection to Reactor:", reactor);
             await ble.connectToReactor(reactor.bleId);
             const powerId = reactor.bleId + ":Power";
             const colorId = reactor.bleId + ":Color";
@@ -277,7 +278,7 @@ export const linkReactor = (reactor, newReactorFlag) => {
                         const strobeRate = data[2]
                         const batteryLevel = 256*data[3]+data[4];
                         const therm = 256*data[5]+data[6];
-                        //console.log("Reactors actions - read powerConfig:", reactor.bleId, powerMode, brightness, strobeRate, batteryLevel, therm);
+                        console.log("Reactors actions - read powerConfig:", reactor.bleId, powerMode, brightness, strobeRate, batteryLevel, therm);
                         await updatePowerConfig(reactor.dbId, powerMode, brightness, strobeRate);
                         dispatch(({
                             type: UPDATE_POWER_CONFIG,
@@ -302,7 +303,7 @@ export const linkReactor = (reactor, newReactorFlag) => {
                         const colorMode = data[2];
                         const lightModeToken = ble.byteToString([data[3]]);
                         const lightMode = (lightModeToken === "T") ? "Tail" : ((lightModeToken === "H") ? "Head" : "Ground");
-                        //console.log("Reactors actions - read colorConfig:", reactor.bleId, mainColor, colorMode, lightMode,);
+                        console.log("Reactors actions - read colorConfig:", reactor.bleId, mainColor, colorMode, lightMode,);
                         await updateColorConfig(reactor.dbId, mainColor, colorMode, lightMode);
                         dispatch(({
                             type: UPDATE_COLOR_CONFIG,
@@ -326,7 +327,7 @@ export const linkReactor = (reactor, newReactorFlag) => {
                         const right = data[2] === 1 ? true : false;
                         const x2b = data[3] === 1 ? true : false;
                         const crash = data[4] === 1 ? true : false;
-                        //console.log("Reactors actions - read reactions:", reactor.bleId, data);
+                        console.log("Reactors actions - read reactions:", reactor.bleId, data);
                         dispatch(({
                             type: UPDATE_REACTIONS,
                             brakeActive: brake,
@@ -351,7 +352,7 @@ export const linkReactor = (reactor, newReactorFlag) => {
                             const startIdx = 4096 * data[1] + 256 * data[2] + 16 * data[3] + data[4];
                             if (startIdx < 32768) {
                                 if (startIdx === 0) {
-                                    //console.log("Reactors actions - starting ota update...");
+                                    console.log("Reactors actions - starting ota update...");
                                 }
                                 const addressLow = startIdx % 256;
                                 const addressHigh = (startIdx - addressLow) / 256;
@@ -363,7 +364,7 @@ export const linkReactor = (reactor, newReactorFlag) => {
                                 const crcBytes = [crcHigh, crcLow];
                                 const bleData = addressBytes.concat(dataBytes).concat(crcBytes);
                                 await ble.writeWithoutResponse(reactor.bleId, reactorServiceUUID, otaUpdateUUID, bleData);
-                                //console.log("Reactors actions - otaUpdate bleData:", bleData);
+                                console.log("Reactors actions - otaUpdate bleData:", bleData);
                                 const checkProgress = startIdx % 256;
                                 if (checkProgress === 0) {
                                     const updateProgress = Math.floor(100 * startIdx / 32768);
@@ -375,7 +376,7 @@ export const linkReactor = (reactor, newReactorFlag) => {
                                     });
                                 }
                             } else if (startIdx === 32768) {
-                                //console.log("Reactors actions - ota update complete...");
+                                console.log("Reactors actions - ota update complete...");
                                 await updateOtaProgress(reactor.dbId, 100)
                                 dispatch({
                                     type: UPDATE_UPDATE_PROGRESS,
@@ -397,7 +398,7 @@ export const linkReactor = (reactor, newReactorFlag) => {
             const strobeRate = powerData[2];
             const batteryLevel = 256*powerData[3]+powerData[4];
             const therm = 256*powerData[5]+powerData[6];
-            //console.log("Reactors actions - initial power config:", reactor.bleId, powerMode, brightness, strobeRate, batteryLevel, therm);
+            console.log("Reactors actions - initial power config:", reactor.bleId, powerMode, brightness, strobeRate, batteryLevel, therm);
             const colorData = await ble.readCharacteristicValue(reactor.bleId, reactorServiceUUID, colorConfigUUID);
             const mainColor = 256 * colorData[0] + colorData[1];
             const colorMode = colorData[2];
@@ -408,26 +409,26 @@ export const linkReactor = (reactor, newReactorFlag) => {
                 const colorConfig = ble.compileColorValue(lightMode, colorMode, mainColor);
                 await ble.writeWithoutResponse(reactor.bleId, reactorServiceUUID, colorConfigUUID, colorConfig);
             }
-            //console.log("Reactors actions - initial color config:", reactor.bleId, mainColor, colorMode, lightMode);
+            console.log("Reactors actions - initial color config:", reactor.bleId, mainColor, colorMode, lightMode);
             const infoUUID = ble.getFullUUID(deviceInformationServiceUUID);
             const revisionUUID = ble.getFullUUID(hardwareRevisionUUID);
             const firmwareBytes = await ble.readCharacteristicValue(reactor.bleId, infoUUID, revisionUUID);
-            //console.log("Reactors actions - firmwareBytes: ",firmwareBytes);
+            console.log("Reactors actions - firmwareBytes: ",firmwareBytes);
             const firmware = ble.byteToString(firmwareBytes);
-            //console.log("Reactors actions - firmware version: ",firmware);
+            console.log("Reactors actions - firmware version: ",firmware);
             const updateData = await ble.readCharacteristicValue(reactor.bleId, reactorServiceUUID, otaUpdateUUID);
-            //console.log("Reactors actions - updateData: ",updateData);
+            console.log("Reactors actions - updateData: ",updateData);
             const updateVersion = ble.byteToString(updateData);
-            //console.log("Reactors actions - initial ota update version:", reactor.bleId, updateVersion);
+            console.log("Reactors actions - initial ota update version:", reactor.bleId, updateVersion);
             let updateProgress = reactor.updateProgress;
             if (updateVersion !== firmware) {
                 if (updateVersion !== FirmwareRevision.version) {
                     updateProgress = 101;
-                    //console.log("Reactors actions - old update started, resetting update progress...");
+                    console.log("Reactors actions - old update started, resetting update progress...");
                 } else {
                     const resumeCommand = "R";
                     await ble.writeWithoutResponse(reactor.bleId, reactorServiceUUID, otaUpdateUUID, resumeCommand);
-                    //console.log("Reactors actions - ota update command:", resumeCommand);
+                    console.log("Reactors actions - ota update command:", resumeCommand);
                 }
             }
             await updatePowerOn(reactor.dbId, powerOn, lightMode, colorMode, mainColor, powerMode, brightness, strobeRate, firmware, updateProgress);
@@ -449,7 +450,7 @@ export const linkReactor = (reactor, newReactorFlag) => {
                 updateProgress: updateProgress
             });
         } catch (err) {
-            //console.log("Reactors actions - linkReactor error:", err);
+            console.log("Reactors actions - linkReactor error:", err);
         }
     };
 };
@@ -620,9 +621,9 @@ export const startOtaUpdate = (bleId) => {
         try {
             const startCommand = "S" + FirmwareRevision.version;
             await ble.writeWithoutResponse(bleId, reactorServiceUUID, otaUpdateUUID, startCommand);
-            //console.log("Reactors actions - ota update command:", startCommand);
+            console.log("Reactors actions - ota update command:", startCommand);
         } catch (err) {
-            //console.log("Reactors actions - startOtaUpdate error:", err);
+            console.log("Reactors actions - startOtaUpdate error:", err);
         }
     };
 };
@@ -637,7 +638,7 @@ export const startOtaInstall = (bleId) => {
                 bleId: bleId
             });
         } catch (err) {
-            //console.log("Reactors actions - startOtaUpdate error:", err);
+            console.log("Reactors actions - startOtaUpdate error:", err);
         }
     };
 };
