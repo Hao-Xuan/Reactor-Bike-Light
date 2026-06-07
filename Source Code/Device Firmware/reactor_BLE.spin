@@ -668,8 +668,8 @@ otaBuffAddr   long      0
 'CRC lookup table
 crcTable      word  0, 22837, 45674, 60255, 15841, 25812, 36747, 54974, 31682, 8951, 51624, 37021, 17955, 7958, 62537, 44412, 63364, 44721, 17902,  7387, 51813, 37712, 30735,  8506, 35910, 54643, 15916, 26393, 45479, 59538,   973, 23288, 46653, 61192,  1111, 23906, 35804, 53993, 14774, 24707, 52735, 38090, 32661,  9888, 61470, 43307, 17012,  6977, 16825,  6284, 62419, 43750, 31832,  9581, 52786, 38663, 14971, 25422, 34833, 53540,  1946, 24239, 46576, 60613, 13647, 27770, 34597, 56848,  2222, 20891, 47812, 58353, 20109,  6072, 64743, 42450, 29548, 10841, 49414, 38963, 49867, 39934, 28833, 10644, 65322, 42527, 19776,  5237, 47369, 57404,  2915, 21078, 34024, 56797, 13954, 28599, 33650, 55879, 12568, 26669, 48787, 59302,  3321, 21964, 63664, 41349, 19162,  5103, 50513, 40036, 30523, 11790, 29942, 11715, 50844, 40873, 18711,  4130, 64381, 41544,  3892, 22017, 48478, 58475, 13013, 27616, 32959, 55690, 27294, 13227, 55540, 33217, 22399,  3658, 58645, 48160,  4444, 18537, 41782, 64003, 11453, 30088, 40663, 51170, 40218, 50223, 12144, 30277, 41211, 63950,  4753, 19364, 59096, 49133, 21682,  3463, 56121, 33292, 26963, 12390, 56483, 34198, 28361, 14332, 57666, 47223, 21288,  2589, 42849, 65108,  5387, 19518, 39552, 50101, 10474, 29151, 11047, 29202, 39245, 49272,  5830, 20467, 42156, 64921, 20709,  2512, 57999, 48058, 27908, 13361, 57198, 34395, 24529,  1764, 60859, 46222, 25136, 15109, 53338, 35183,  9235, 32038, 38521, 53068,  6642, 16583, 43928, 62125, 43093, 61792,  6719, 17162, 38324, 52353, 10206, 32491, 54167, 35490, 25085, 14536, 61046, 46915, 23580,  1321, 59884, 45273, 23430,   691, 54285, 36152, 26215, 16210, 37422, 51995,  8260, 31089, 45007, 63226,  7589, 17552,  7784, 18269, 44034, 62775,  9097, 31420, 37347, 51414, 26026, 15519, 55232, 36597, 22603, 382, 59937, 45844
 'firmware revision codes
-firmwareRev   byte "VERSION XXXXXXXX",0
-updateRev     byte "XXXXXXXX",0
+firmwareRev   byte "VERSION XX.XX.XX",0
+updateRev     byte "XX.XX.XX",0
 'ble status codes
 bleREBOOT     byte "%REBOOT%",0
 'ble prompts and responses
@@ -693,12 +693,12 @@ bleNAZ  byte  "NA,Z",CR,0                       'clear all AD structures
 bleNBZ  byte  "NB,Z",CR,0                       'clear beacon
 bleNSZ  byte  "NS,Z",CR,0                       'clear scan response format
 bleNA   byte  "NA,01,06,NA,09,Leviathan Reactor",CR,0                           'AD structure configuration command
-bleLS   byte  "LS,XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",CR,0                        'list Reactor service characteristics
-blePSRS byte  "PS,XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",CR,0                        'create Reactor service
-blePCCC byte  "PC,XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX,16,14",CR,0                  'create Color Configuration characteristic
-blePCPC byte  "PC,XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX,16,14",CR,0                  'create Power Configuration characteristic
-blePCRX byte  "PC,XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX,16,14",CR,0                  'create Reactions characteristic
-blePCOU byte  "PC,XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX,16,14",CR,0                  'create OTA Update characteristic
+bleLS   byte  "LS,0FCB45F58B2F4CABADE667AE2AA261E3",CR,0                        'list Reactor service characteristics
+blePSRS byte  "PS,0FCB45F58B2F4CABADE667AE2AA261E3",CR,0                        'create Reactor service
+blePCCC byte  "PC,043EECEA04EE4AC0B8418493E963936C,16,14",CR,0                  'create Color Configuration characteristic
+blePCPC byte  "PC,F862EFCC6F8F4346957E1F9A57E87EF3,16,14",CR,0                  'create Power Configuration characteristic
+blePCRX byte  "PC,33CA0239BFBF43FD9D7BCF7F69FF548A,16,14",CR,0                  'create Reactions characteristic
+blePCOU byte  "PC,F7E418F829364D799ABA1DB3D2F1A005,16,14",CR,0                  'create OTA Update characteristic
 'ble characteristic read/write commands
 bleWCC  byte  "SHW,XXXX,00000000",CR,0          'write to Color Configuration characteristic
 bleWPC  byte  "SHW,XXXX,00000000000000",CR,0    'write Power Configuration characteristic

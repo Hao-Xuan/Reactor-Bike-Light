@@ -1,6 +1,6 @@
 {{
-Filename:  reactor_Fusion.spin
-Process raw sensor data into kinematic state
+Filename:  reactor_DMP.spin
+Process raw sensor data into kinematic state estimate
 }}
 con
 'control constants
@@ -10,7 +10,7 @@ con
   N=10          'max index of filter kernel
 
 var
-'sensor fusion process variables
+'digital motion processing variables
   long  stack[60]                                       'general purpose variable stack
   long  agXS,agYS,agZS,gXS,gYS,gZS,gXG,gYG,gZG          'temporary raw sensor data
   long  fPitch,fRoll,fYaw                               'fused floating point motion states
@@ -29,7 +29,7 @@ obj
 'auxiliary objects
   flop : "reactor_Float"        'floating point coprocessor
 
-pub start(_LockID3,_LockID4,_newRdata,_newFdata,_imuData,_fusionData,_fusionCalibration) : readyFUSE
+pub start(_LockID3,_LockID4,_newRdata,_newFdata,_imuData,_fusionData,_fusionCalibration) : readyDMP
 'copy startup parameters
   LockID3:=_LockID3                       'copy data access semaphores
   LockID4:=_LockID4
@@ -41,7 +41,7 @@ pub start(_LockID3,_LockID4,_newRdata,_newFdata,_imuData,_fusionData,_fusionCali
 'stop active instances
   stop
 'start data processing pipeline in new cog
-  readyFUSE:=cog:=cognew(processIMUdata,@stack)+1     'initialize data processing pipeline in new cog
+  readyDMP:=cog:=cognew(processIMUdata,@stack)+1     'initialize data processing pipeline in new cog
 
 pub stop
 'stop sensor fusion processes

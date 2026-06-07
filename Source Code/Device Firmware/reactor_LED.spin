@@ -1,20 +1,20 @@
 {{
-File:  reactor_GRB.spin
+File:  reactor_LED.spin
 Generate serial transmission to program LEDs.
 }}
-pub start(_LockID1,_grbDataAddr) : GRBready
+pub start(_LockID1,_ledDataAddr) : LEDready
 'start method for RGB_control object
 'copy startup parameters
   LockID1  := _LockID1                                  'copy LED color code access semaphore
-  statA    := _grbDataAddr                              'copy main RAM address for RGB status code
-  btClrA   := _grbDataAddr+4                            'copy main RAM address for battery indicator color
-  abClrA   := _grbDataAddr+8                            'copy main RAM address for ground light color
-  bsClrA   := _grbDataAddr+12                           'copy main RAM address for brake signal color
-  fsClrA   := _grbDataAddr+16                           'copy main RAM address for flash signal color
+  statA    := _ledDataAddr                              'copy main RAM address for RGB status code
+  btClrA   := _ledDataAddr+4                            'copy main RAM address for battery indicator color
+  abClrA   := _ledDataAddr+8                            'copy main RAM address for ground light color
+  bsClrA   := _ledDataAddr+12                           'copy main RAM address for brake signal color
+  fsClrA   := _ledDataAddr+16                           'copy main RAM address for flash signal color
 'stop active instances
   stop
 'launch LED driver in new cog
-  GRBready:=cog:=cognew(@initLEDs,0)+1                  'begin RGB control in new cog
+  LEDready:=cog:=cognew(@initLEDs,0)+1                  'begin RGB control in new cog
 
 pub stop
 'stop active cog
@@ -289,8 +289,8 @@ bleGRB        long      $0000_00FF    'ble activity indicator base color code
 'control constants  and masks
 aByte         long      %1111_1111              'single byte mask
 pixels        long      8                       'number of leds to program on each side
-t0H           long      28                      '0-level high time
-tTOT          long      112                     'RGB transmission bit period
+t0H           long      22                      '0-level high time
+tTOT          long      88                      'RGB transmission bit period
 tRST          long      5120                    'reset low time
 PRGRate       long      1_280_000               'program cycle (f = 50 Hz)
 baseRate      long      32_000_000              'base strobe toggle cycle (f = 2 Hz)
