@@ -88,7 +88,7 @@ Because the Propeller P8X32A lacks a dedicated I2C peripheral, a bare-metal driv
 
 ### Physical layer
 
-The bike light design required custom electronic and mechanical hardware, all of which was designed together using standard schematic capture, PCB layout, 3D modeling, and simulation techniques. Several design iterations resulted in a compact, industrial, reliable prototype.
+The bike light design required custom electronic and mechanical hardware, all of which was designed together using standard schematic capture, PCB layout, 3D modeling, and simulation techniques. Several design iterations resulted in a compact and reliable prototype suitable for real-world use.
 
 #### Figure 4 - Physical prototype
 <img width="1164" height="951" alt="reactor_physical" src="https://github.com/user-attachments/assets/8b68d90d-0faf-4ba7-8091-087c0641ac89" />
