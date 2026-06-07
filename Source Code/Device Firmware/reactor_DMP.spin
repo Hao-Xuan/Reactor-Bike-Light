@@ -5,11 +5,9 @@ Process raw sensor data into kinematic state
 con
 'control constants
   pS=0.02       'sampling period in seconds (50Hz)
-  Kw=0.75       'complementar filter coefficients
+  Kw=0.75       'complementary filter weight coefficients
   Ka=0.25
-  N=20          'max index of filter kernel
-  mid=10        'middle element of kernel
-  half=9        'halfway of kernel stack
+  N=10          'max index of filter kernel
 
 var
 'sensor fusion process variables
@@ -25,7 +23,7 @@ var
   long  tSData[N+1]                                     'temperature data queue
   long  lightMode,calPitch,calFlag,g,gF,w,wF            'calibration data
   long  SGyy,SGyz,SGzy,SGzz                             'rotation matrix elements
-  long  kernel[11]                                      'low pass filter kernel vector
+  long  kernel[N+1]                                     'low pass filter kernel array
 
 obj
 'auxiliary objects
@@ -63,18 +61,18 @@ pub processIMUdata | RDYflop,idx
   aXB:=aYB:=aZB:=wXB:=wYB:=wZB:=0.0
   fRoll:=fPitch:=fYaw:=0.0
   bPitch:=bRoll:=bYaw:=bSpeed:=0.0
-'initialize low pass filter kernel elements (20-point Sinc Filter with Hamming Window)
-  kernel[0]:=-0.001564
-  kernel[1]:=-0.000952
-  kernel[2]:=0.000896
-  kernel[3]:=0.006374
-  kernel[4]:=0.017627
-  kernel[5]:=0.035520
-  kernel[6]:=0.058940
-  kernel[7]:=0.084711
-  kernel[8]:=0.108258
-  kernel[9]:=0.124807
-  kernel[10]:=0.130768
+'initialize low pass filter kernel elements (10-point Sinc Filter with Hamming Window)
+  kernel[0]:=0.008139
+  kernel[1]:=0.022399
+  kernel[2]:=0.064179
+  kernel[3]:=0.124876
+  kernel[4]:=0.179592
+  kernel[5]:=0.201631
+  kernel[6]:=kernel[4]
+  kernel[7]:=kernel[3]
+  kernel[8]:=kernel[2]
+  kernel[9]:=kernel[1]
+  kernel[10]:=kernel[0]
 'get calibration data from main RAM
   repeat until not lockset(LockID4)
   g:=long[fusionCalibration]
@@ -98,6 +96,15 @@ pub processIMUdata | RDYflop,idx
   SGyy:=SGzz:=flop.Cos(calPitch)
   SGyz:=flop.Sin(calPitch)
   SGzy:=flop.FNeg(SGyz)
+'synchronize with sensor acquisition
+  repeat
+    repeat until not lockset(LockID3)
+    if (long[newRData]==0)
+      lockclr(LockID3)
+    else
+      long[newRData]:=0
+      lockclr(LockID3)
+      quit
 'main loop
   repeat
     getIMUData                  'get IMU data from main RAM and convert to floating point
@@ -105,7 +112,7 @@ pub processIMUdata | RDYflop,idx
     doKinematics                'align IMU data with bike frame and estimate forward acceleration
     sendFusionData              'send motion state to main RAM
 
-pri getIMUData | waiting, idx
+pri getIMUData | idx
 'shift data queues to make room for new value
   repeat idx from N to 1
     aXData[idx]:=aXData[idx-1]
@@ -115,11 +122,10 @@ pri getIMUData | waiting, idx
     wYData[idx]:=wYData[idx-1]
     wZData[idx]:=wZData[idx-1]
     tSData[idx]:=tSData[idx-1]
-'copy sensor data from main RAM
-  waiting~~
+'wait for sensor data from main RAM
   repeat
     repeat until not lockset(LockID3)
-    if long[newRdata]==0
+    if (long[newRdata]==0)
       lockclr(LockID3)
     else
       aXData[0]:=long[imuData]
@@ -131,8 +137,7 @@ pri getIMUData | waiting, idx
       tSData[0]:=long[imuData+24]
       long[newRdata]:=0
       lockclr(LockID3)
-      waiting~
-  while waiting
+      quit
 'convert data to floating point
   aXData[0]:=flop.FFloat(aXData[0])
   aYData[0]:=flop.FFloat(aYData[0])
@@ -145,7 +150,7 @@ pri getIMUData | waiting, idx
 pri filterIMUData | idx
 'convolve sensor data with low pass filter kernel
   agXS:=agYS:=agZS:=wXS:=wYS:=wZS:=tS:=0.0
-  repeat idx from 0 to mid
+  repeat idx from 0 to N
     agXS:=flop.FAdd(agXS,flop.FMul(aXData[idx],kernel[idx]))
     agYS:=flop.FAdd(agYS,flop.FMul(aYData[idx],kernel[idx]))
     agZS:=flop.FAdd(agZS,flop.FMul(aZData[idx],kernel[idx]))
@@ -153,14 +158,6 @@ pri filterIMUData | idx
     wYS:=flop.FAdd(wYS,flop.FMul(wYData[idx],kernel[idx]))
     wZS:=flop.FAdd(wZS,flop.FMul(wZData[idx],kernel[idx]))
     tS:=flop.FAdd(tS,flop.FMul(tSData[idx],kernel[idx]))
-  repeat idx from half to 0
-    agXS:=flop.FAdd(agXS,flop.FMul(aXData[N-idx],kernel[idx]))
-    agYS:=flop.FAdd(agYS,flop.FMul(aYData[N-idx],kernel[idx]))
-    agZS:=flop.FAdd(agZS,flop.FMul(aZData[N-idx],kernel[idx]))
-    wXS:=flop.FAdd(wXS,flop.FMul(wXData[N-idx],kernel[idx]))
-    wYS:=flop.FAdd(wYS,flop.FMul(wYData[N-idx],kernel[idx]))
-    wZS:=flop.FAdd(wZS,flop.FMul(wZData[N-idx],kernel[idx]))
-    tS:=flop.FAdd(tS,flop.FMul(tSData[N-idx],kernel[idx]))
 
 pri doKinematics | aZSPerp,gXGPerp,sinP,cosP,sinR,cosR,GByx,GByy,GByz,GBzx,GBzy,GBzz
 'calculate pitch and roll from acceleration components
@@ -222,7 +219,7 @@ pri doKinematics | aZSPerp,gXGPerp,sinP,cosP,sinR,cosR,GByx,GByy,GByz,GBzx,GBzy,
   bYaw:=flop.FAdd(bYaw,flop.FDiv(flop.FMul(pS,wYB),wF))
   bPitch:=flop.Degrees(flop.FMul(10.0,bPitch))
   bRoll:=flop.Degrees(flop.FMul(10.0,bRoll))
-'calculate pcb temperature
+'calculate temperature in decidegrees Celsius
   tS:=flop.FMul(10.0,flop.FAdd(25.0,flop.FDiv(tS,128.0)))
 
 pri sendFusionData | t0,t1,t2,t3,t4,t5,t6,t7,t8
@@ -243,6 +240,7 @@ pri sendFusionData | t0,t1,t2,t3,t4,t5,t6,t7,t8
     -t7 'wYb
 'send data to main RAM and update light mode
   t8:=lightMode
+
   repeat until not lockset(LockID4)
   long[newFdata]~~
   long[fusionData]:=t0

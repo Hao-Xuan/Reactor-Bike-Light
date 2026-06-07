@@ -87,6 +87,31 @@ if_c          jmp       #$-1                            'jump back and try again
               call      #checkIMU                       'call subroutine to get data from IMU
               jmp       #:loop                          'jump back to repeat main loop
 
+'configure IMU register:        parameters:     p0 = IMU register address
+'                                               p1 = data to write
+configReg     call      #writeByte                      'write configuratin data to IMU register
+              mov       p2,     #1                      'initialize read counter
+              waitcnt   sT,     cycle                   'wait for configuration setup time
+              call      #readBytes                      'read configured register
+              cmp       p1,     pD              wz      'raise Z if correct configuration
+if_nz         or        sTd,    sAZd                    'record error if incorrect configuration
+              shl       sAZd,   #1                      'shift error mask for next configuration
+configReg_ret           ret                             'return to caller
+
+'touch sensor detection and time measurement
+checkTouch    test      Apin,   ina             wc      'raise C if A-side touch sensor active
+              test      Bpin,   ina             wz      'raise Z if B-side touch sensor inactice
+if_c          add       aHold,  cycle                   'increment A hold time if A active
+if_nc         mov       aHold,  #0                      'clear A hold time if A inactive
+if_nz         add       bHold,  cycle                   'increment B hold time if B active
+if_z          mov       bHold,  #0                      'clear B hold time if B inactive
+              lockset   LockID5                 wc      'open touch sensor data lock
+if_c          jmp       #$-1                            'jump back if already open
+              wrlong    aHold,  AaHold                  'write a-side hold time to main RAM
+              wrlong    bHold,  AbHold                  'write b-side hold time to main RAM
+              lockclr   LockID5                         'close data lock
+checkTouch_ret          ret                             'return to caller
+
 'ADC battery voltage measurement
 checkADC      mov       t0,     cnt                     'mark time
               add       t0,     #32                     'set initial deadline
@@ -106,31 +131,6 @@ if_c          jmp       #$-1                            'jump back if lock alrea
               mov       sC,     num                     'initialize counter for next measurement
               mov       pwrLvl, #0                      'clear temp power level
 checkADC_ret            ret                             'return to caller
-
-'touch sensor detection and time measurement
-checkTouch    test      Apin,   ina             wc      'raise C if A-side touch sensor active
-              test      Bpin,   ina             wz      'raise Z if B-side touch sensor inactice
-if_c          add       aHold,  cycle                   'increment A hold time if A active
-if_nc         mov       aHold,  #0                      'clear A hold time if A inactive
-if_nz         add       bHold,  cycle                   'increment B hold time if B active
-if_z          mov       bHold,  #0                      'clear B hold time if B inactive
-              lockset   LockID5                 wc      'open touch sensor data lock
-if_c          jmp       #$-1                            'jump back if already open
-              wrlong    aHold,  AaHold                  'write a-side hold time to main RAM
-              wrlong    bHold,  AbHold                  'write b-side hold time to main RAM
-              lockclr   LockID5                         'close data lock
-checkTouch_ret          ret                             'return to caller
-
-'configure IMU register:        parameters:     p0 = IMU register address
-'                                               p1 = data to write
-configReg     call      #writeByte                      'write configuratin data to IMU register
-              mov       p2,     #1                      'initialize read counter
-              waitcnt   sT,     cycle                   'wait for configuration setup time
-              call      #readBytes                      'read configured register
-              cmp       p1,     pD              wz      'raise Z if correct configuration
-if_nz         or        sTd,    sAZd                    'record error if incorrect configuration
-              shl       sAZd,   #1                      'shift error mask for next configuration
-configReg_ret           ret                             'return to caller
 
 'get new data from ICM-42670P registers and compile into 16-bit words
 checkIMU      mov       p0,     tempData1               'copy sensor data base address to p0
@@ -337,7 +337,7 @@ adcInt  long  336_000                 'ADC timing interval
 newP    long  $4444_4444              'new power data flag
 newR    long  $DDDD_DDDD              'new imu sensor data flag
 counter long  %0_01001_000            'adc counter mode POS-W/F (positive with feedback)
-tCLK    long  120                     'clock delay time
+tCLK    long  500                     'I2C clock delay time (1000 tick cycle -> 64kHz clock frequency)
 cycle   long  1_280_000               '50Hz cycle period
 msbmask long  %1000_0000              '8-bit MSB bitmask
 n16mask long  $0000_8000              '16-bit negative value detection mask
