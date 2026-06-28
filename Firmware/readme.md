@@ -1,8 +1,8 @@
 ## Firmware Architecture
-<img width="1387" height="715" alt="reactor_architecture" src="https://github.com/user-attachments/assets/2a8e6289-25fc-4531-a36a-915c486eec51" />
-
 ### Overview
 The embedded system runs on a multi-core MCU which operates separate cores for sensor acquisition, motion processing, main control, BLE communication, and LED control. These modules exchange data through buffers stored in main memory. Access to shared resources is synchronized using hardware locks to prevent concurrent access conflicts.
+
+<img width="1387" height="715" alt="reactor_architecture" src="https://github.com/user-attachments/assets/2a8e6289-25fc-4531-a36a-915c486eec51" />
 
 ### Sensors
 The sensor core acquires data from three sensor arrays. Battery voltage is measured on the accumulator of a sigma-delta ADC circuit. User input is detected by timing the activation of touch sensors on the sides of the device. Acceleration, angular velocity, and temperature measurements are acquired over I2C from an IMU.
