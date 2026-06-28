@@ -1,11 +1,11 @@
 # Reactor Bike Light
 
 ## The Engineering Question
-Every bicycle already produces a rich stream of information about what its rider is doing. Slowing down, leaning into a turn, stopping, accelerating, or falling over are all natural motions of riding. Most bicycle lights ignore this information entirely and instead rely on the rider to manually issue commands through buttons or remotes. Reactor began with a simple engineering question:
+The Reactor Bike Light began with a simple engineering question:
 
 **Can the natural motions of riding a bicycle serve as the controller for its lighting system?**
 
-If the answer is yes, then many user interactions could disappear. The rider could spend less time operating the light and more time simply riding the bicycle. As the project evolved, the rest of the design began to organize itself around a simple principle: infer rider intent whenever it can be done reliably, and keep deliberate commands simple whenever it cannot. Answering that question ultimately required more than a brake light or a turn signal. It required a complete lighting system capable of observing the ride, interpreting what it meant, and coordinating multiple forms of visual communication around the bicycle.
+If the answer is yes, then the rider could spend less time operating the light and more time simply riding the bicycle. As the project evolved, the rest of the design began to organize itself around a simple principle: infer rider intent whenever it can be done reliably, and keep deliberate commands simple whenever it cannot. Answering that question ultimately required a complete lighting system capable of observing the ride, interpreting what it meant, and coordinating multiple forms of visual communication around the bicycle.
 
 The result is Reactor.
 
