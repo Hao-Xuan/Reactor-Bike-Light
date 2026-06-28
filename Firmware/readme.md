@@ -1,12 +1,4 @@
-Reactor Bike Light is a real-time embedded lighting system for bicycles built on a multicore microcontroller architecture. The system uses IMU-based motion estimation to detect braking, turning, and crash events, communicating them through adaptive LED behavior and BLE connectivity. The device supports three modes: tail light mode uses red illumination, head light mode uses white, and the unique ground light mode projects dynamic color patterns onto the ground around the bicycle.
-
-### Technical Highlights
-  + Multicore real-time embedded architecture
-  + IMU-based motion estimation with sensor fusion
-  + Finite state machines for motion-reactive lighting control
-  + BLE communications with CRC-validated firmware updates
----
-## Architecture
+## Firmware Architecture
 <img width="1387" height="715" alt="reactor_architecture" src="https://github.com/user-attachments/assets/2a8e6289-25fc-4531-a36a-915c486eec51" />
 
 ### Overview
@@ -84,12 +76,3 @@ Because the Propeller P8X32A lacks a dedicated I2C peripheral, a bare-metal driv
 <img width="982" height="555" alt="validation_i2c_protocol" src="https://github.com/user-attachments/assets/00555a53-0b94-462f-89ff-8dc0341a7f55" />
 
 (1) START condition generated, (2) address and acknowledgement phase begins, (3) data transfer begins 
-
-### Physical layer
-
-The bike light design required custom electronic and mechanical hardware, all of which was designed together using standard schematic capture, PCB layout, 3D modeling, and simulation techniques. Several design iterations resulted in a compact and reliable prototype suitable for real-world use.
-
-#### Figure 4 - Physical prototype
-<img width="1164" height="951" alt="reactor_physical" src="https://github.com/user-attachments/assets/8b68d90d-0faf-4ba7-8091-087c0641ac89" />
-
-Completed enclosure, populated control PCB, and illuminated prototype hardware. The system integrates custom electronics, multicore firmware, BLE communications, IMU sensing, and motion-reactive LED control into a battery-powered bicycle lighting platform.
