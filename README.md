@@ -7,7 +7,7 @@ This project began with a simple engineering question:
 
 If the answer is yes, then many user interactions could be eliminated. Brake lights, turn signals, hazard flashers, and other color changes could occur automatically, allowing the rider to focus on simply riding the bicycle. The project therefore evolved around a simple principle: infer rider intent whenever it can be done reliably, and keep deliberate commands simple whenever it cannot.
 
-The result is the Reactor Bike Light: a complete lighting system capable of observing the ride, interpreting what it meant, and coordinating multiple forms of visual communication around the bicycle.
+The result is the Reactor Bike Light.
 
 ## The System
 
