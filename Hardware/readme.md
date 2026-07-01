@@ -23,3 +23,5 @@ The resulting hardware consists of tightly integrated electronic and mechanical 
  + mounting system
 
 [Click Here for Mechanical Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Hardware/Mechanical)
+
+---
