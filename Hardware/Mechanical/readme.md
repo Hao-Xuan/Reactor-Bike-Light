@@ -1,4 +1,4 @@
-**This section is still under construction. Please come back later to learn more about Reactor's hardware design.**
+**This section is still under construction. Please come back later to learn more about Reactor's mechanical design.**
 
 # Hardware Overview
 
