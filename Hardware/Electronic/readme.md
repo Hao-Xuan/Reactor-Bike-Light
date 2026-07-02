@@ -62,7 +62,7 @@ The protected output of this stage appears at **VIN**, which serves as the entry
 
 The Always-On Domain provides the circuitry required for Reactor to remain responsive while inactive. Unlike the remainder of the system, which is completely powered down when the bike light is off, the Always-On Domain remains active whenever a battery is installed. Its primary responsibility is to monitor rider input and determine when the system should transition from standby into normal operation. Figure 3 shows the schematic snippet for the Always-On Domain.
 
-<img width="1477" height="625" alt="schematic_Always_On" src="https://github.com/user-attachments/assets/baa211b3-258f-4e3c-a72e-fc0219f7e262" />
+<img width="1473" height="609" alt="schematic_Always_On" src="https://github.com/user-attachments/assets/0ed29144-675d-47a1-a5a0-b9bfa3deb406" />
 
 **Figure 3**
 
