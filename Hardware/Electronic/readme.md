@@ -15,26 +15,26 @@ The block diagram in Figure 1 below provides a high-level view of the electronic
 
 **Figure 1**
 
-### Power Source
+### 🔵 Power Source
 
 The Power Source block consists of a removable lithium-ion battery and the circuitry required to safely interface that battery to the rest of the system. The removable battery design allows riders to replace depleted cells and continue riding without waiting for a recharge cycle. Input protection circuitry guards the electronics against common fault conditions and provides a stable entry point for power distribution throughout the device.
 
-### Always-On Domain
+### 🟢 Always-On Domain
 
 The Always-On Domain provides the circuitry to monitor rider input and initiate system startup. It remains powered whenever a battery is installed and operates independently of the rest of the system. This arrangement allows Reactor to remain responsive while minimizing standby power consumption, since the lighting system and control electronics only need to be energized when the rider requests them.
 
-### High-Power Domain
+### 🔴 High-Power Domain
 
 The High-Power Domain serves as the primary operating power domain for Reactor. Once activated by the Always-On Domain, it supplies power to the lighting system and to the control electronics responsible for sensing, communications, and system coordination. This arrangement allows the majority of the hardware to remain unpowered when inactive while still supporting rapid startup when rider input is detected.
 
-### Control Domain
+### 🟡 Control Domain
 
 The Control Domain contains the circuitry responsible for sensing, computation, communications, data storage, battery monitoring, and system coordination. It receives power from the High-Power Domain and remains active only while the lighting system is operating. This arrangement provides a stable regulated supply while ensuring that the control electronics consume no power when the system is inactive.
 
 ---
 ## Domain Details
 
-### Power Source
+### 🔵 Power Source
 
 The Power Source block provides energy to the entire system and protects downstream electronics from battery-related fault conditions. All power enters the PCB from a battery and passes through a small protection stage before reaching the remainder of the system. Figure 2 shows the schematic snippet for both subsystems.
 
@@ -56,7 +56,7 @@ Because Reactor uses removable batteries, incorrect installation must be conside
 
 The protected output of this stage appears at **VIN**, which serves as the entry point for the remainder of Reactor's power distribution system.
 
-### Always-On Domain
+### 🟢 Always-On Domain
 
 The Always-On Domain provides the circuitry required for Reactor to remain responsive while inactive. Unlike the remainder of the system, which is unpowered when the bike light is off, the Always-On Domain remains active whenever a battery is installed. The Always-On Domain consists of two primary subsystems: the touch sensing circuitry used to detect rider input and the wakeup logic responsible for enabling the rest of the electronic system. Figure 3 shows the schematic snippet for the Always-On Domain.
 
@@ -78,7 +78,7 @@ A simultaneous touch on both sensing pads generates the **4V_EN** signal, enabli
 
 By separating wakeup detection from normal operation, Reactor remains responsive while consuming very little power when inactive. The rider experiences immediate startup, while the majority of the electronics remain unpowered until needed.
 
-### High-Power Domain
+### 🔴 High-Power Domain
 
 The High-Power Domain provides the regulated power required for normal system operation. Once enabled by the Always-On Domain, it supplies energy to both the lighting system and the control electronics responsible for sensing, communications, and system coordination.
 
@@ -108,7 +108,7 @@ Addressable LEDs were selected because they integrate the LED drivers and commun
 
 The arrays are powered directly from the regulated 4.0V supply and arranged as independent serial chains, allowing each array to operate independently when required. Each LED includes local bypass capacitance to reduce supply disturbances caused by rapid switching of the internal LED drivers.
 
-### Control Domain
+### 🟡 Control Domain
 
 The Control Domain contains the circuitry responsible for sensing, computation, communications, persistent storage, and battery monitoring. Operating from the regulated 3.3V supply, it serves as the central coordination point for Reactor's electronic system.
 
@@ -185,30 +185,26 @@ In addition to storing the application firmware, unused EEPROM space is used to 
 ---
 ## PCB Layout
 
-The Reactor PCB was designed as a compact four-layer board that integrates the lighting, sensing, power management, and communications subsystems into a single assembly. Component placement, routing, power distribution, and thermal management were considered together to support reliable operation while conforming to the mechanical constraints of the enclosure. The resulting layout separates high-current lighting circuitry from the control electronics while providing continuous ground planes, dedicated internal power distribution, and integrated capacitive touch electrodes.
+The Reactor PCB was designed as a compact four-layer board that integrates the lighting, sensing, power management, and communications subsystems into a single assembly. Component placement, routing, power distribution, and thermal management were considered together to support reliable operation while conforming to the mechanical constraints of the enclosure. The resulting layout separates high-current lighting circuitry from the control electronics while providing continuous ground planes, dedicated internal power distribution, and integrated capacitive touch electrodes. Figure 12 shows the annotated view of this layout.
 
+<img width="600" height="867" alt="PCB_Annotated_Small" src="https://github.com/user-attachments/assets/3f302906-1c99-447a-986c-c2b417ecbcaf" />
 
-<img width="1324" height="839" alt="pcb_Full_Oblique" src="https://github.com/user-attachments/assets/30cf83be-e731-4e6d-b7c9-01be29cbe425" />
-
-**Figure 11**
-
-### PCB Overview
-
-<img width="763" height="1078" alt="pcb_Full_Screenshot_No_Mask" src="https://github.com/user-attachments/assets/99d875a5-d7db-450a-a393-dc1aa06b51b2" />
-
-**Figure 12** Annotated PCB layout showing the major hardware subsystems.
-
-| No. | Domain | Subsystem |
-|:---:|---------|-----------|
-| 🟢 ① | Always-On | Touch Sensors |
-| 🟢 ② | Always-On | Wakeup Logic |
-| 🔴 ③ | High-Power | Buck/Boost Regulator |
-| 🔴 ④ | High-Power | LED Arrays |
-| 🟡 ⑤ | Control | MCU |
-| 🟡 ⑥ | Control | IMU |
-| 🟡 ⑦ | Control | BLE Module |
-| 🟡 ⑧ | Control | EEPROM |
-| 🟡 ⑨ | Control | Battery Monitor |
+**Figure 12**
+| Domain | ID | Module |
+|:------|:---:|:-------|
+| 🔵 **Power Source** | **P1** | Removable Li-ion Battery |
+| 🔵 **Power Source** | **P2** | PCB Input Protection |
+| 🟢 **Always-On** | **A1** | Always-On Supply |
+| 🟢 **Always-On** | **A2** | Dual Touch Sensors |
+| 🟢 **Always-On** | **A3** | Wakeup Logic |
+| 🔴 **High-Power** | **H1** | High-Power Supply |
+| 🔴 **High-Power** | **H2** | Control Supply |
+| 🔴 **High-Power** | **H3** | Dual LED Arrays |
+| 🟡 **Control** | **C1** | Microcontroller |
+| 🟡 **Control** | **C2** | Battery Monitor |
+| 🟡 **Control** | **C3** | Radio Communications |
+| 🟡 **Control** | **C4** | Inertial Measurement |
+| 🟡 **Control** | **C5** | Persistent Memory |
 
 ### Layer 1 – Component Placement and Signal Routing
 
