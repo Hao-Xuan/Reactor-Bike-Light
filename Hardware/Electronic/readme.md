@@ -134,7 +134,7 @@ The microcontroller coordinates every function within Reactor's electronic syste
 
 <img width="603" height="632" alt="schematic_Control_Domain_MCU" src="https://github.com/user-attachments/assets/ece6e7aa-b6e8-4bd2-ad30-27eaa227fc2f" />
 
-**Figure 6**
+**Figure 7**
 
 The Propeller P8X32A serves as the central controller for Reactor. The device provides eight independent processing cores that share access to memory and I/O resources, allowing sensing, communications, lighting control, and system management tasks to execute concurrently.
 
@@ -148,7 +148,7 @@ The inertial measurement unit (IMU) provides the motion data that allows Reactor
 
 <img width="601" height="500" alt="schematic_Control_Domain_IMU" src="https://github.com/user-attachments/assets/c5256526-324b-471a-b80c-2063286a77c1" />
 
-**Figure 7**
+**Figure 8**
 
 The IMU communicates with the microcontroller over an I²C interface and serves as the primary sensing device within Reactor. An interrupt output provides a dedicated hardware signal for communicating time-critical events to the microcontroller, while pull-up resistors on the I²C bus ensure reliable communication between the two devices.
 
@@ -162,7 +162,7 @@ The Bluetooth Low Energy (BLE) subsystem provides wireless communication between
 
 <img width="671" height="575" alt="schematic_Control_Domain_BLE" src="https://github.com/user-attachments/assets/d655e51c-f023-4651-a7cf-c707e1c2f64f" />
 
-**Figure 8**
+**Figure 9**
 
 Wireless communication is provided by a self-contained BLE module that integrates the radio, protocol stack, and application processor into a single package. Using a pre-certified module significantly reduced hardware complexity and eliminated the need to develop a custom RF design.
 
@@ -174,7 +174,7 @@ The Battery Monitor subsystem measures battery voltage so firmware can estimate 
 
 <img width="434" height="388" alt="schematic_Control_Domain_ADC" src="https://github.com/user-attachments/assets/d868707f-83b2-4bf5-b5a2-832eca590724" />
 
-**Figure 9**
+**Figure 10**
 
 Battery voltage is reduced to a safe measurement range by a resistor divider before being presented to the microcontroller. RC filtering removes high-frequency noise and switching transients from the supply, improving measurement stability during normal operation.
 
@@ -186,7 +186,7 @@ The Persistent Memory subsystem provides non-volatile storage for both Reactor's
 
 <img width="517" height="464" alt="schematic_Control_Domain_EEPROM" src="https://github.com/user-attachments/assets/5a4bbdef-a4f1-4de4-8466-7c61575fc41f" />
 
-**Figure 10**
+**Figure 11**
 
 The EEPROM is connected to the microcontroller through a dedicated I²C interface that is separate from the inertial measurement unit. This isolates program memory accesses from motion sensor communications while allowing firmware to read and write persistent data whenever required.
 
