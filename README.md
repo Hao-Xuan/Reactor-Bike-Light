@@ -23,19 +23,17 @@ The resulting hardware combines a multicore microcontroller, inertial measuremen
 
 [Click for Hardware Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Hardware)
 
-## The Firmware
+## The Software
 
-The firmware is responsible for transforming raw sensor measurements into lighting behavior. Motion data from the bicycle is filtered, interpreted, and evaluated in real time to determine what the rider is doing and how the lighting system should respond. This is where Reactor's central design principle is implemented: infer rider intent whenever it can be done reliably, and defer to rider input when it cannot.
+Reactor's software is divided into two closely integrated components: the embedded firmware running on each Reactor unit and the companion mobile application used to configure and coordinate the lighting system. Together they transform the hardware into a responsive, connected product that can infer rider intent, communicate with external devices, and provide a consistent user experience across multiple lights.
 
-To support this behavior, the firmware combines sensor processing, state machines, LED control, touch input handling, wireless communication, and system coordination into a deterministic real-time control system. Follow the link to see the architecture, timing decisions, control logic, and engineering tradeoffs that allow Reactor to remain responsive and predictable while balancing reliability, computational cost, and real-time performance.
+The embedded firmware performs the real-time responsibilities of the system. It acquires sensor data, interprets rider motion, manages wireless communication, controls the LED arrays, and coordinates every aspect of device operation. Built around deterministic control logic, the firmware implements Reactor's central design principle: infer rider intent whenever it can be done reliably, and defer to deliberate rider input when it cannot.
 
-[Click for Firmware Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Firmware)
+The companion mobile application provides the higher-level interface for configuration, monitoring, and system management. It allows multiple Reactor units to behave as a coordinated lighting system while giving riders access to operating modes, battery status, customization options, and crash notifications that would be impractical to manage directly from the device itself.
 
-## The Mobile App
+Follow the link below to explore the software architecture, including the embedded firmware and companion mobile application.
 
-While routine interactions are designed to occur directly on the bicycle, some tasks are more naturally performed through a mobile device. The Reactor mobile application serves as the coordination and control layer for multiple Reactor units, allowing them to behave as a unified lighting system. Follow the link to see the communication architecture, user interface design, and engineering decisions behind the mobile application.
-
-[Click for Mobile App Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Mobile)
+[Click for Software Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Software)
 
 ## The Past and The Future
 
