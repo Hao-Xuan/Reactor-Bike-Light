@@ -30,17 +30,17 @@ The embedded firmware transforms raw sensor measurements into lighting behavior.
 
 **[Click Here for Firmware Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Firmware)**
 
-### Mobile
-
-The companion mobile application provides the interface between the rider and the lighting system. It allows multiple Reactor units to operate as a coordinated platform while providing configuration, battery monitoring, crash notifications, and customization features that would be impractical to manage directly from the device itself.
-
-**[Click Here for Mobile Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Mobile)**
-
 ### Mechanical
 
 The mechanical design packages the electronics into a compact, weather-resistant enclosure while providing battery access, optical control, rider interaction, and a universal silicone mounting system. Particular attention was given to manufacturability, durability, thermal performance, and ease of everyday use.
 
 **[Click Here for Mechanical Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Mechanical)**
+
+### Mobile
+
+The companion mobile application provides the interface between the rider and the lighting system. It allows multiple Reactor units to operate as a coordinated platform while providing configuration, battery monitoring, crash notifications, and customization features that would be impractical to manage directly from the device itself.
+
+**[Click Here for Mobile Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Mobile)**
 
 ## Future Work
 This section is still under construction. Please come back later to learn more about the future of the Reactor Bike Light.
