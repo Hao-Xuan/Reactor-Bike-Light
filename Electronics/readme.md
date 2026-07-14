@@ -199,7 +199,7 @@ In addition to storing the application firmware, unused EEPROM space is used to 
 
 The Reactor PCB was designed as a compact four-layer board that integrates the lighting, sensing, power management, and communications subsystems into a single assembly. Component placement, routing, power distribution, and thermal management were considered together to support reliable operation while conforming to the mechanical constraints of the enclosure. The resulting layout separates high-current lighting circuitry from the control electronics while providing continuous ground planes, dedicated internal power distribution, and integrated capacitive touch electrodes. Figure 12 shows the annotated view of this layout.
 
-<img width="600" height="867" alt="PCB_Annotated_Small" src="https://github.com/user-attachments/assets/3f302906-1c99-447a-986c-c2b417ecbcaf" />
+<img width="600" height="867" alt="PCB_Annotated" src="https://github.com/user-attachments/assets/6d89d6aa-c480-4fb1-bd66-72bb0914b45f" />
 
 **Figure 12**
 | Domain | ID | Module |
@@ -210,13 +210,13 @@ The Reactor PCB was designed as a compact four-layer board that integrates the l
 | 🟢 **Always-On** | **A2** | Dual Touch Sensors |
 | 🟢 **Always-On** | **A3** | Wakeup Logic |
 | 🔴 **High-Power** | **H1** | High-Power Supply |
-| 🔴 **High-Power** | **H2** | Control Supply |
-| 🔴 **High-Power** | **H3** | Dual LED Arrays |
-| 🟡 **Control** | **C1** | Microcontroller |
+| 🔴 **High-Power** | **H2** | Dual LED Arrays |
+| 🟡 **Control** | **C1** | Control Supply |
 | 🟡 **Control** | **C2** | Battery Monitor |
-| 🟡 **Control** | **C3** | Radio Communications |
-| 🟡 **Control** | **C4** | Inertial Measurement |
-| 🟡 **Control** | **C5** | Persistent Memory |
+| 🟡 **Control** | **C3** | Microcontroller |
+| 🟡 **Control** | **C4** | Radio Communications |
+| 🟡 **Control** | **C5** | Inertial Measurement |
+| 🟡 **Control** | **C6** | Persistent Memory |
 
 ### Layer 1 – Component Placement and Signal Routing
 
@@ -224,7 +224,7 @@ The Reactor PCB was designed as a compact four-layer board that integrates the l
 
 **Figure 13**
 
-The top layer contains all components, all signal routing, and the battery power distribution. Keeping every signal on a single layer simplified routing, eliminated vias on critical interfaces, and provided complete control over return current paths through the adjacent ground plane. High-current lighting traces were routed with appropriate width while sensitive control signals were kept short and isolated from switching power circuitry.
+The top layer contains all components, all signal routing, and the battery power distribution. Additionally, the touch sensor electrodes are integrated into the right and left sides of the PCB and wrap around the sides to the bottom layer. Keeping every signal on a single layer simplified routing, eliminated vias on critical interfaces, and provided complete control over return current paths through the adjacent ground plane. High-current lighting traces were routed with appropriate width while sensitive control signals were kept short and isolated from switching power circuitry.
 
 Component placement follows the functional partitioning established in the schematic. Power conversion circuitry is located near the battery input, the control electronics occupy the center of the board, and the LED arrays are positioned along the perimeter to maximize optical coverage while minimizing routing complexity.
 
@@ -250,7 +250,7 @@ The third layer distributes the regulated 2.5V, 3.3V, and 4.0V supply domains th
 
 **Figure 16**
 
-The bottom layer provides a second continuous ground plane. Together with Layer 2, it forms a low-impedance return path for the entire system while improving electromagnetic performance and increasing the board's overall thermal conductivity. The dual-plane arrangement also increases mechanical rigidity despite the relatively thin PCB profile required by the enclosure.
+The bottom layer provides a second continuous ground plane. Together with Layer 2, it forms a low-impedance return path for the entire system while improving electromagnetic performance and increasing the board's overall thermal conductivity. The dual-plane arrangement also increases mechanical rigidity despite the relatively thin PCB profile required by the enclosure. Additionally, the edge-plated touch sensor electrodes extend into the bottom layer.
 
 ## Testing / Validation
 
