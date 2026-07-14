@@ -1,63 +1,48 @@
 # Reactor Bike Light
 
 ## The Engineering Question
+
 This project began with a simple engineering question:
 
 **Can the natural motions of riding a bicycle serve as the controller for its lighting system?**
 
-If the answer is yes, then many user interactions could be eliminated. Brake lights, turn signals, hazard flashers, and other color changes could occur automatically, allowing the rider to focus on simply riding the bicycle. The project therefore evolved around a simple principle: infer rider intent whenever it can be done reliably, and keep deliberate commands simple whenever it cannot.
+If the answer is yes, many rider interactions can be eliminated. Brake lights, turn signals, hazard flashers, and other lighting changes can occur automatically, allowing the rider to focus on riding rather than operating the lighting system. The project therefore evolved around a simple design principle: **infer rider intent whenever it can be done reliably, and keep deliberate commands simple whenever it cannot.**
 
-The result is the Reactor Bike Light.
+The result is the **Reactor Bike Light**.
 
 ## The System
 
-A Reactor unit can operate in one of three roles relevant to rider visibility and awareness: a white head light to illuminate forward, a red tail light to illuminate rearward, or a color-changing ground light to illuminate downard. Multiple units can be combined to create a complete lighting system distributed around the bicycle.
+A Reactor unit can operate in one of three lighting roles: a white head light, a red tail light, or a color-changing ground light. Multiple units can be combined to create a coordinated lighting system distributed around the bicycle.
 
-Because these lights work together to communicate rider intent, they must also share behavior. The Reactor mobile application coordinates configuration, monitoring, and control across multiple lights, allowing the rider to interact with the system as a whole rather than managing individual devices. The sections that follow describe the hardware, firmware, and mobile application that make this possible.
+Each unit continuously monitors bicycle motion, communicates with companion devices, and reacts automatically to changes in rider behavior. A companion mobile application provides configuration, monitoring, and coordination across multiple Reactor units, allowing the rider to interact with the lighting system as a whole rather than managing individual lights.
 
-## Hardware
+The following documentation describes the four major engineering disciplines involved in the project.
 
-The Reactor Bike Light began as a new approach to bicycle ground-effect lighting. While ground lights are common on bicycles, most existing systems are purely decorative. Reactor was designed to use motion sensing to transform ground lighting into an active safety feature, automatically communicating rider intent through changes in color and lighting behavior.
+### Electronics
 
-Early in development, it became clear that the same hardware could also operate as a head light or tail light. That realization transformed Reactor from a single-purpose device into a modular lighting platform and established many of the constraints that shaped its design. The electronics, enclosure, optics, power system, rider interface, and mounting hardware were all developed together to support multiple operating roles within a single compact product.
+The electronics integrate power management, motion sensing, embedded processing, wireless communication, persistent storage, battery monitoring, and individually addressable LED control into a compact multilayer PCB. Together these subsystems provide the foundation that allows Reactor to observe rider behavior and generate responsive lighting effects.
 
-The resulting hardware consists of two closely integrated systems: the electronic hardware that senses, processes, communicates, and controls the lighting system, and the mechanical hardware that packages these functions into a durable, weather-resistant product suitable for everyday use.
+**[Click Here for Electronics Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Electronics)**
 
-The following sections describe these systems in detail.
+### Mechanical
 
-### Electronic Hardware
+The mechanical design packages the electronics into a compact, weather-resistant enclosure while providing battery access, optical control, rider interaction, and a universal silicone mounting system. Particular attention was given to manufacturability, durability, thermal performance, and ease of everyday use.
 
-The electronic design includes power management, motion sensing, embedded processing, wireless communication, persistent storage, battery monitoring, and individually addressable LED control. Together, these subsystems provide the foundation that allows Reactor to interpret rider behavior and produce responsive lighting effects.
+**[Click Here for Mechanical Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Mechanical)**
 
-**[Click Here for Electronics Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Hardware/Electronic)**
+### Firmware
 
-### Mechanical Hardware
+The embedded firmware transforms raw sensor measurements into lighting behavior. It performs sensor acquisition, signal processing, real-time control, wireless communication, power management, and LED rendering while maintaining deterministic system behavior. The firmware implements Reactor's central design principle by automatically inferring rider intent whenever it can be done reliably.
 
-The mechanical design integrates the enclosure, optics, battery access, rider interface, and mounting system into a compact assembly that protects the electronics while supporting the lighting system's multiple operating modes. Particular attention was given to manufacturability, durability, and ease of use during everyday riding.
+**[Click Here for Firmware Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Firmware)**
 
-**[Click Here for Mechanical Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/
+### Mobile
 
-## Software
-The Reactor software transforms the hardware into an intelligent lighting system capable of responding automatically to the motion of the bicycle. It combines real-time embedded control with a companion mobile application to provide sensing, communications, configuration, and system management across one or more Reactor units.
+The companion mobile application provides the interface between the rider and the lighting system. It allows multiple Reactor units to operate as a coordinated platform while providing configuration, battery monitoring, crash notifications, and customization features that would be impractical to manage directly from the device itself.
 
-The embedded firmware performs the time-critical responsibilities of the system. It acquires motion data, processes rider input, controls the LED arrays, manages power, and coordinates wireless communication while maintaining deterministic real-time behavior. The firmware is responsible for implementing Reactor's central design principle: infer rider intent whenever it can be done reliably, and defer to deliberate rider input whenever it cannot.
+**[Click Here for Mobile Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Mobile)**
 
-The companion mobile application provides the higher-level interface for configuration, monitoring, and multi-device coordination. It allows riders to customize operating behavior, monitor battery status, send crash notifications, and manage multiple Reactor units as a single integrated lighting system.
-
-The following sections describe these software components in detail.
-
-### Device Firmware
-
-The firmware documentation describes the embedded architecture, task organization, sensor processing pipeline, state machines, communications infrastructure, and the engineering decisions that allow Reactor to respond predictably in real time.
-
-**[Click Here for Firmware Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Software/Device%20Firmware)**
-
-### Mobile Application
-
-The mobile application documentation describes the Bluetooth communication architecture, user interface, configuration system, and the software design decisions that provide a simple interface between the rider and the Reactor lighting system.
-
-**[Click Here for Mobile App Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Software/Mobile%20App)**
-
-## The Past and The Future
+## Future Work
+This section is still under construction. Please come back later to learn more about the future of the Reactor Bike Light.
 
 ---
