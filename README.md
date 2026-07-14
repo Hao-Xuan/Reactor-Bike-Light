@@ -24,12 +24,6 @@ The electronics integrate power management, motion sensing, embedded processing,
 
 **[Click Here for Electronics Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Electronics)**
 
-### Mechanical
-
-The mechanical design packages the electronics into a compact, weather-resistant enclosure while providing battery access, optical control, rider interaction, and a universal silicone mounting system. Particular attention was given to manufacturability, durability, thermal performance, and ease of everyday use.
-
-**[Click Here for Mechanical Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Mechanical)**
-
 ### Firmware
 
 The embedded firmware transforms raw sensor measurements into lighting behavior. It performs sensor acquisition, signal processing, real-time control, wireless communication, power management, and LED rendering while maintaining deterministic system behavior. The firmware implements Reactor's central design principle by automatically inferring rider intent whenever it can be done reliably.
@@ -41,6 +35,12 @@ The embedded firmware transforms raw sensor measurements into lighting behavior.
 The companion mobile application provides the interface between the rider and the lighting system. It allows multiple Reactor units to operate as a coordinated platform while providing configuration, battery monitoring, crash notifications, and customization features that would be impractical to manage directly from the device itself.
 
 **[Click Here for Mobile Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Mobile)**
+
+### Mechanical
+
+The mechanical design packages the electronics into a compact, weather-resistant enclosure while providing battery access, optical control, rider interaction, and a universal silicone mounting system. Particular attention was given to manufacturability, durability, thermal performance, and ease of everyday use.
+
+**[Click Here for Mechanical Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Mechanical)**
 
 ## Future Work
 This section is still under construction. Please come back later to learn more about the future of the Reactor Bike Light.
