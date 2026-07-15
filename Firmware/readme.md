@@ -4,6 +4,8 @@ The embedded system runs on a multi-core MCU which operates separate cores for s
 
 <img width="1096" height="565" alt="reactor_architecture" src="https://github.com/user-attachments/assets/694fda7f-01dd-43af-bfd3-ad3f6f867c92" />
 
+**Figure 1** - High-level firmware architecture showing concurrent execution across the Propeller's eight processing cores
+
 ### Sensors
 The sensor core acquires data from three sensor arrays. Battery voltage is measured on the accumulator of a sigma-delta ADC circuit. User input is detected by timing the activation of touch sensors on the sides of the device. Acceleration, angular velocity, and temperature measurements are acquired over I2C from an IMU.
 
@@ -58,12 +60,11 @@ Some examples are shown below.
 
 Critical inter-core communication paths were instrumented using GPIO markers and verified on hardware with an oscilloscope. The traces below validate both synchronization between processing stages and the latency of data transfer between Sensor and DMP cores.
 
-#### Figure 1 - Validation of synchronized data handoff between sensor and DMP cores
 <img width="982" height="555" alt="validation_ipc_synchronization" src="https://github.com/user-attachments/assets/6932a127-fd3c-4026-a6a7-9449c2137f9f" />
 
-(1) Sensor acquisition cycle begins, (2) new IMU sample committed to shared memory, (3) DMP core consumes new sample, (4) updated motion estimate committed to shared memory
+**Figure 2** - Validation of synchronized data handoff between sensor and DMP cores: (1) Sensor acquisition cycle begins, (2) new IMU sample committed to shared memory, (3) DMP core consumes new sample, (4) updated motion estimate committed to shared memory
 
-#### Figure 2 - Inter-core data transfer latency
+#### Figure 3 - Inter-core data transfer latency
 <img width="982" height="555" alt="validation_ipc_latency" src="https://github.com/user-attachments/assets/ad37efea-af8c-4bf4-ae77-b05aada6f5f8" />
 
 (1) Sensor core commits new IMU sample to shared memory, (2) DMP core copies new sample approximately 200 us later
