@@ -60,9 +60,11 @@ Some examples are shown below.
 
 Critical inter-core communication paths were instrumented using GPIO markers and verified on hardware with an oscilloscope. The traces below validate both synchronization between processing stages and the latency of data transfer between Sensor and DMP cores.
 
+#### Figure 2 - Validation of synchronized data handoff between sensor and DMP cores
+
 <img width="982" height="555" alt="validation_ipc_synchronization" src="https://github.com/user-attachments/assets/6932a127-fd3c-4026-a6a7-9449c2137f9f" />
 
-**Figure 2** - Validation of synchronized data handoff between sensor and DMP cores: (1) Sensor acquisition cycle begins, (2) new IMU sample committed to shared memory, (3) DMP core consumes new sample, (4) updated motion estimate committed to shared memory
+(1) Sensor acquisition cycle begins, (2) new IMU sample committed to shared memory, (3) DMP core consumes new sample, (4) updated motion estimate committed to shared memory
 
 #### Figure 3 - Inter-core data transfer latency
 <img width="982" height="555" alt="validation_ipc_latency" src="https://github.com/user-attachments/assets/ad37efea-af8c-4bf4-ae77-b05aada6f5f8" />
@@ -73,7 +75,7 @@ Critical inter-core communication paths were instrumented using GPIO markers and
 
 Because the Propeller P8X32A lacks a dedicated I2C peripheral, a bare-metal driver was implemented in Propeller assembly (PASM). Oscilloscope captures were used to verify protocol timing and reliable data transfer.
 
-#### Figure 3 - Validation of assembly-language I2C driver
+#### Figure 4 - Validation of assembly-language I2C driver
 <img width="982" height="555" alt="validation_i2c_protocol" src="https://github.com/user-attachments/assets/00555a53-0b94-462f-89ff-8dc0341a7f55" />
 
 (1) START condition generated, (2) address and acknowledgement phase begins, (3) data transfer begins 
