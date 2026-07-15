@@ -200,7 +200,6 @@ The Reactor PCB was designed as a compact four-layer board that integrates the l
 
 <img width="600" height="867" alt="PCB_Annotated" src="https://github.com/user-attachments/assets/6d89d6aa-c480-4fb1-bd66-72bb0914b45f" />
 
-**Figure 12** - Annotated PCB layout showing the locations of the major electronic subsystems
 | Domain | Reference | Module |
 |:------|:---:|:-------|
 | 🔵 **Power Source** | **P1** | Removable Li-ion Battery |
@@ -216,6 +215,8 @@ The Reactor PCB was designed as a compact four-layer board that integrates the l
 | 🟡 **Control** | **C4** | Radio Communications |
 | 🟡 **Control** | **C5** | Inertial Measurement |
 | 🟡 **Control** | **C6** | Persistent Memory |
+
+**Figure 12** - Annotated PCB layout showing the locations of the major electronic subsystems
 
 ### Layer 1 – Component Placement and Signal Routing
 
@@ -251,10 +252,38 @@ The third layer distributes the regulated 2.5V, 3.3V, and 4.0V supply domains th
 
 The bottom layer provides a second continuous ground plane. Together with Layer 2, it forms a low-impedance return path for the entire system while improving electromagnetic performance and increasing the board's overall thermal conductivity. The dual-plane arrangement also increases mechanical rigidity despite the relatively thin PCB profile required by the enclosure. Additionally, the edge-plated touch sensor electrodes extend into the bottom layer.
 
+---
 ## Testing / Validation
 
 **This section is still under construction. Please come back later to learn more about the testing and validation of Reactor's electronic system.**
 
-The electronic design was validated through a combination of oscilloscope measurements, logic analyzer captures, power supply characterization, and long-duration functional testing. These measurements were used to verify startup sequencing, regulator stability, communications timing, battery measurement accuracy, and reliable operation of the lighting system under normal riding conditions.
+<img width="750" height="1000" alt="reactor_Dev_Board" src="https://github.com/user-attachments/assets/6aa6dc31-148b-4c70-8bb7-e21f300248c8" />
+
+**Figure 17** - Development version of the Reactor electronics, which is electrically identical to the production hardware but includes a PropPlug programming interface, EEPROM programming socket, and dedicated test points to support development, validation, and manufacturing
+
+### Development Hardware
+
+Hardware development was performed using a dedicated development version of the Reactor PCB. Electrically, this board is identical to the production hardware, but incorporates several features intended to simplify development, validation, and manufacturing. A PropPlug programming interface provides direct access to the microcontroller during firmware development, while a removable EEPROM programming socket allows non-volatile memory devices to be programmed before installation on production boards. Dedicated test points expose each regulated supply rail and other critical signals, allowing rapid verification of power sequencing and subsystem operation during board bring-up.
+
+Because the production electronics are permanently sealed inside the enclosure, these development features were intentionally omitted from the final hardware after validation. The development board therefore served as the primary platform for hardware bring-up, firmware development, electrical characterization, and production EEPROM programming throughout the project.
+
+### Board Bring-up
+#### Power Source
+
+Assembly began with the battery input circuitry, including the input protection network and battery connector. The board was initially powered from a current-limited bench supply configured to emulate a lithium-ion cell, allowing input current to be monitored while verifying the integrity of the battery input path. At this stage, temporary support circuits were constructed on a breadboard to provide the switches, LEDs, and other simple interfaces required during bring-up.
+
+#### Always-On Domain
+
+The Always-On Domain was assembled next and validated independently. The 2.5 V standby supply was verified before testing the wakeup logic, touch sensors, and supporting circuitry responsible for enabling the remainder of the system. Confirming correct operation of the Always-On Domain ensured that subsequent power sequencing could proceed from a known-good foundation.
+
+#### High-Power Domain
+
+With the wakeup circuitry verified, the High-Power Domain was populated and enabled through the validated wakeup logic. The buck/boost regulator was exercised under bench power while verifying the 4.0 V supply, regulator startup behavior, and the power-good sequencing responsible for enabling the downstream Control Domain. Temporary test loads consisting of LEDs mounted on the auxiliary breadboard were then used to characterize regulator performance under representative operating conditions before any high-power lighting hardware was installed on the PCB. Once stable regulator operation had been confirmed, development proceeded to the Control Domain while leaving the onboard LED arrays unpopulated.
+
+#### Control Domain
+
+The final stage of bring-up consisted of assembling the Control Domain around the microcontroller. Once the 3.3 V supply was verified, simple firmware validation routines were used to confirm processor startup, external memory operation, inertial measurement unit communication, battery monitoring, wireless communication, and LED driver operation. Individual peripherals were exercised independently before integrating the complete control system, allowing hardware and firmware development to proceed in parallel while maintaining confidence in each subsystem.
+
+Only after the Control Domain had been fully validated were the onboard LED arrays mounted. Delaying installation of the production lighting hardware until the remainder of the system had been verified minimized debugging complexity while ensuring that any remaining issues could be isolated to the lighting circuitry itself.
 
 ---
