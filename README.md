@@ -4,11 +4,11 @@
 
 This project began with a simple engineering question:
 
-**Can the natural motions of riding a bicycle serve as the controller for its lighting system?**
+Can the natural motions of riding a bicycle serve as the controller for its lighting system?
 
-If the answer is yes, many rider interactions can be eliminated. Brake lights, turn signals, hazard flashers, and other lighting changes can occur automatically, allowing the rider to focus on riding rather than operating the lighting system. The project therefore evolved around a simple design principle: **infer rider intent whenever it can be done reliably, and keep deliberate commands simple whenever it cannot.**
+If the answer is yes, many rider interactions can be eliminated. Brake lights, turn signals, hazard flashers, and other lighting changes can occur automatically, allowing the rider to focus on riding rather than operating the lighting system. The project therefore evolved around a simple design principle: infer rider intent whenever it can be done reliably, and keep deliberate commands simple whenever it cannot.
 
-The result is the **Reactor Bike Light**.
+The result is the Reactor Bike Light.
 
 ## The System
 
