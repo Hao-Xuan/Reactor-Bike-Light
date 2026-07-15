@@ -20,7 +20,7 @@ The following documentation describes the four major engineering disciplines inv
 
 ### Electronics
 
-The electronics integrate power management, motion sensing, embedded processing, wireless communication, persistent storage, battery monitoring, and individually addressable LED control into a compact multilayer PCB. Together these subsystems provide the foundation that allows Reactor to observe rider behavior and generate responsive lighting effects.
+The electronics integrate power management, motion sensing, embedded processing, touch sensing, wireless communication, persistent storage, battery monitoring, and individually addressable LED control into a compact multilayer PCB. Together these subsystems provide the foundation that allows Reactor to observe rider behavior and generate responsive lighting effects.
 
 **[Click Here for Electronics Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Electronics)**
 
