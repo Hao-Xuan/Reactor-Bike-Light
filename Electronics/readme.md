@@ -224,7 +224,7 @@ The Reactor PCB was designed as a compact four-layer board that integrates the l
 
 **Figure 13**
 
-The top layer contains all components, all signal routing, and the battery power distribution. Additionally, the touch sensor electrodes are integrated into the right and left sides of the PCB and wrap around the sides to the bottom layer. Keeping every signal on a single layer simplified routing, eliminated vias on critical interfaces, and provided complete control over return current paths through the adjacent ground plane. High-current lighting traces were routed with appropriate width while sensitive control signals were kept short and isolated from switching power circuitry.
+The top layer contains all components, all signal routing, and the battery power distribution. Additionally, the touch sensor electrodes are integrated into the right and left sides of the PCB and wrap around the sides to the bottom layer. Keeping every signal on a single layer simplified routing, eliminated vias on critical interfaces, and provided complete control over return current paths through the adjacent ground plane.
 
 Component placement follows the functional partitioning established in the schematic. Power conversion circuitry is located near the battery input, the control electronics occupy the center of the board, and the LED arrays are positioned along the perimeter to maximize optical coverage while minimizing routing complexity.
 
@@ -242,7 +242,7 @@ The second layer is dedicated almost entirely to an uninterrupted ground plane. 
 
 **Figure 15**
 
-The third layer distributes the regulated 2.5V, 3.3V, and 4.0V supply domains throughout the board. Separating power distribution from signal routing reduces routing congestion while allowing each supply domain to be delivered with low impedance to its respective circuitry. The wide copper regions also contribute additional thermal mass, helping conduct heat toward the aluminum enclosure and the steel mounting pins used by the silicone mounting strap.
+The third layer distributes the regulated 2.5V, 3.3V, and 4.0V supply domains throughout the board. Separating power distribution from signal routing reduces routing congestion while allowing each supply domain to be delivered with low impedance to its respective circuitry. The wide copper regions also contribute additional thermal mass, helping conduct heat toward the enclosure and the steel mounting pins.
 
 ### Layer 4 – Ground Plane
 
