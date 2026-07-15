@@ -12,21 +12,21 @@ The result is the **Reactor Bike Light**.
 
 ## The System
 
-A Reactor unit can operate in one of three lighting roles: a white head light, a red tail light, or a color-changing ground light. Multiple units can be combined to create a coordinated lighting system distributed around the bicycle.
+A Reactor unit can operate as a white head light, a red tail light, or a color-changing ground light. Multiple units can be combined to create a coordinated lighting system distributed around the bicycle.
 
 Each unit continuously monitors bicycle motion, communicates with companion devices, and reacts automatically to changes in rider behavior. A companion mobile application provides configuration, monitoring, and coordination across multiple Reactor units, allowing the rider to interact with the lighting system as a whole rather than managing individual lights.
 
-The following documentation describes the four major engineering disciplines involved in the project.
+The following documentation describes the four major engineering disciplines involved in the project. Although each discipline is documented independently, the four systems were developed concurrently as a single integrated product.
 
 ### Electronics
 
-The electronics integrate power management, motion sensing, embedded processing, touch sensing, wireless communication, persistent storage, battery monitoring, and individually addressable LED control into a compact multilayer PCB. Together these subsystems provide the foundation that allows Reactor to observe rider behavior and generate responsive lighting effects.
+The electronics integrate power management, motion sensing, embedded processing, touch sensing, wireless communication, persistent storage, battery monitoring, and individually addressable LED control into a compact multilayer PCB. Together these subsystems provide the foundation that allows Reactor to sense bicycle motion, interpret rider intent, and generate responsive lighting behavior.
 
 **[Click Here for Electronics Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Electronics)**
 
 ### Firmware
 
-The embedded firmware transforms raw sensor measurements into lighting behavior. It performs sensor acquisition, signal processing, real-time control, wireless communication, power management, and LED rendering while maintaining deterministic system behavior. The firmware implements Reactor's central design principle by automatically inferring rider intent whenever it can be done reliably.
+The embedded firmware transforms raw sensor measurements into lighting behavior. It performs sensor acquisition, signal processing, real-time control, wireless communication, power management, and LED rendering while maintaining deterministic system behavior. The firmware implements Reactor's central design principle by transforming sensor data into predictable lighting behavior while automatically inferring rider intent whenever it can be done reliably.
 
 **[Click Here for Firmware Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Firmware)**
 
@@ -38,7 +38,7 @@ The mechanical design packages the electronics into a compact, weather-resistant
 
 ### Mobile
 
-The companion mobile application provides the interface between the rider and the lighting system. It allows multiple Reactor units to operate as a coordinated platform while providing configuration, battery monitoring, crash notifications, and customization features that would be impractical to manage directly from the device itself.
+The companion mobile application provides an optional interface between the rider and the lighting system. It allows multiple Reactor units to operate as a coordinated platform while providing configuration, battery monitoring, crash notifications, and customization features that would be impractical to manage directly from the device itself.
 
 **[Click Here for Mobile Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Mobile)**
 
