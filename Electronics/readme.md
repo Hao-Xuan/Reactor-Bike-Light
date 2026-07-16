@@ -257,9 +257,9 @@ The bottom layer provides a second continuous ground plane. Together with Layer 
 
 **This section is still under construction. Please come back later to learn more about the testing and validation of Reactor's electronic system.**
 
-<img width="750" height="1000" alt="reactor_Dev_Board" src="https://github.com/user-attachments/assets/6aa6dc31-148b-4c70-8bb7-e21f300248c8" />
+<img width="990" height="626" alt="reactor_Prod_Dev" src="https://github.com/user-attachments/assets/4dfe63fd-beef-4d41-984a-7176cba49d87" />
 
-**Figure 17** - Development version of the Reactor electronics, which is electrically identical to the production hardware but includes a PropPlug programming interface, EEPROM programming socket, and dedicated test points to support development, validation, and manufacturing
+**Figure 17** - Production (left) and development (right) versions of the Reactor electronics. The development board preserves the production electrical design while adding programming and validation hardware, including firmware download, EEPROM programming, power-domain monitoring, and subsystem bring-up support. Production boards are assembled, programmed, functionally verified, and then sealed into the final enclosure.
 
 ### Development Hardware
 
