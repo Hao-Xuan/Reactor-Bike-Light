@@ -43,11 +43,11 @@ import {
 
 
 const ble = new ReactorBLE();
-const reactorServiceUUID = "0fcb45f5-8b2f-4cab-ade6-67ae2aa261e3";
-const colorConfigUUID = "043eecea-04ee-4ac0-b841-8493e963936c";
-const powerConfigUUID = "f862efcc-6f8f-4346-957e-1f9a57e87ef3";
-const reactionsUUID = "33ca0239-bfbf-43fd-9d7b-cf7f69ff548a";
-const otaUpdateUUID = "f7e418f8-2936-4d79-9aba-1db3d2f1a005";
+const reactorServiceUUID = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+const colorConfigUUID = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+const powerConfigUUID = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+const reactionsUUID = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+const otaUpdateUUID = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 const deviceInformationServiceUUID = "180a";
 const hardwareRevisionUUID = "2a27";
 

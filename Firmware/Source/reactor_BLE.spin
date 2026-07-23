@@ -693,12 +693,12 @@ bleNAZ  byte  "NA,Z",CR,0                       'clear all AD structures
 bleNBZ  byte  "NB,Z",CR,0                       'clear beacon
 bleNSZ  byte  "NS,Z",CR,0                       'clear scan response format
 bleNA   byte  "NA,01,06,NA,09,Leviathan Reactor",CR,0                           'AD structure configuration command
-bleLS   byte  "LS,0FCB45F58B2F4CABADE667AE2AA261E3",CR,0                        'list Reactor service characteristics
-blePSRS byte  "PS,0FCB45F58B2F4CABADE667AE2AA261E3",CR,0                        'create Reactor service
-blePCCC byte  "PC,043EECEA04EE4AC0B8418493E963936C,16,14",CR,0                  'create Color Configuration characteristic
-blePCPC byte  "PC,F862EFCC6F8F4346957E1F9A57E87EF3,16,14",CR,0                  'create Power Configuration characteristic
-blePCRX byte  "PC,33CA0239BFBF43FD9D7BCF7F69FF548A,16,14",CR,0                  'create Reactions characteristic
-blePCOU byte  "PC,F7E418F829364D799ABA1DB3D2F1A005,16,14",CR,0                  'create OTA Update characteristic
+bleLS   byte  "LS,XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",CR,0                        'list Reactor service characteristics
+blePSRS byte  "PS,XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",CR,0                        'create Reactor service
+blePCCC byte  "PC,XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX,16,14",CR,0                  'create Color Configuration characteristic
+blePCPC byte  "PC,XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX,16,14",CR,0                  'create Power Configuration characteristic
+blePCRX byte  "PC,XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX,16,14",CR,0                  'create Reactions characteristic
+blePCOU byte  "PC,XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX,16,14",CR,0                  'create OTA Update characteristic
 'ble characteristic read/write commands
 bleWCC  byte  "SHW,XXXX,00000000",CR,0          'write to Color Configuration characteristic
 bleWPC  byte  "SHW,XXXX,00000000000000",CR,0    'write Power Configuration characteristic
