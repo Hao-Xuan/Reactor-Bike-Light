@@ -286,4 +286,40 @@ The final stage of bring-up consisted of assembling the Control Domain around th
 
 Only after the Control Domain had been fully validated were the onboard LED arrays mounted. Delaying installation of the production lighting hardware until the remainder of the system had been verified minimized debugging complexity while ensuring that any remaining issues could be isolated to the lighting circuitry itself.
 
+### Startup Sequence Validation
+
+The power-up sequence was verified with oscilloscope measurements of the power-control signals and supply rails. The composite capture below shows the five key events in the transition from the OFF state to normal operation.
+
+1. **4V_EN asserted** — A simultaneous touch of both sensors initiates the hardware wakeup sequence, causing `4V_EN` to be asserted and enabling the 4.0 V supply.
+
+2. **4 V rail reaches regulation** — The 4.0 V rail rises to its regulated output. Once the supply reaches a valid operating condition, its `Power Good` signal is released.
+
+3. **3V3_EN asserted** — The released `Power Good` signal allows `3V3_EN` to be pulled high, enabling the 3.3 V regulator.
+
+4. **3.3 V rail reaches regulation** — The 3.3 V rail rises to its operating voltage, providing power to the MCU and the remaining switched electronics.
+
+5. **PWR_EN asserted** — Firmware asserts `PWR_EN` low, latching the system in the ON state. The touch sensors can then be released without interrupting power.
+
+<img width="1950" height="1100" alt="Startup_Sequence" src="https://github.com/user-attachments/assets/1126c9e9-e0ce-45b8-83eb-8f1c3b678a9c" />
+
+**Figure 18** - Oscilloscope captures validating the Reactor power-up sequence, showing the five sequential transitions from 4V_EN assertion through PWR_EN assertion and system power-latch.
+
+The measured sequence occurs on multiple time scales. The initial transitions between the power-control signals and supply rails occur within tens to hundreds of microseconds, while the final transition to the latched ON state occurs on a much longer time scale. From the initial wakeup event to assertion of `PWR_EN`, the complete startup sequence takes approximately 1 second.
+
+The measurements confirm that each power stage is enabled in the intended order and that the system does not proceed to the next stage until the preceding supply has reached a valid operating condition. This provides a controlled transition from the always-on 2.5 V domain to the switched 4.0 V and 3.3 V domains while allowing the initial touch gesture to be released once firmware has taken control of the power latch.
+
+### Thermal Performance and Temperature Regulation
+
+Thermal performance was evaluated using two bench-top experiments. In each experiment, three Reactor units were tested individually in Head (H), Ground (G), and Tail (T) modes. The **ambient-cooled (A)** experiment relied on natural convection, while the **fan-cooled (F)** experiment used forced airflow to approximate cooling during a bicycle ride.
+
+Figure 19 shows the resulting temperature measurements. The three units exhibit similar thermal behavior within each operating mode, with Head mode producing the highest temperatures and Ground and Tail modes operating substantially cooler.
+
+<img width="1015" height="831" alt="Temp (C) vs Time (min)" src="https://github.com/user-attachments/assets/e9ec081b-011b-4c59-b3c8-921c0b98a28e" />
+
+**Figure 19** - Temperature versus time for several Reactor units in static bench tests.
+
+A notable result is the tight grouping of all six Head-mode traces near 59–60 °C. The small oscillations in this range are the result of the firmware's thermal regulation responding to the measured temperature. The consistency of this behavior across all three units and both cooling conditions provides direct validation of the temperature regulation mechanism.
+
+As expected, forced airflow reduces the steady-state temperature in each mode while preserving the same overall thermal characteristics. This provides additional confidence that the thermal behavior is well controlled across different cooling conditions.
+
 ---
