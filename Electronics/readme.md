@@ -267,24 +267,29 @@ Hardware development was performed using a dedicated development version of the 
 
 Because the production electronics are permanently sealed inside the enclosure, these development features were intentionally omitted from the final hardware after validation. The development board therefore served as the primary platform for hardware bring-up, firmware development, electrical characterization, and production EEPROM programming throughout the project.
 
-### Board Bring-up
+### Board Bring-Up
+
 #### Power Source
 
-Assembly began with the battery input circuitry, including the input protection network and battery connector. The board was initially powered from a current-limited bench supply configured to emulate a lithium-ion cell, allowing input current to be monitored while verifying the integrity of the battery input path. At this stage, temporary support circuits were constructed on a breadboard to provide the switches, LEDs, and other simple interfaces required during bring-up.
-
-#### Always-On Domain
-
-The Always-On Domain was assembled next and validated independently. The 2.5 V standby supply was verified before testing the wakeup logic, touch sensors, and supporting circuitry responsible for enabling the remainder of the system. Confirming correct operation of the Always-On Domain ensured that subsequent power sequencing could proceed from a known-good foundation.
+Assembly began with the battery input circuitry, including the input protection network and battery connector. The board was initially powered from a current-limited bench supply configured to emulate a lithium-ion cell, allowing input current to be monitored while verifying the integrity of the battery input path. The protected power bus was also connected to the external breadboard, which provided temporary switches, LEDs, and other simple interfaces used during bring-up.
 
 #### High-Power Domain
 
-With the wakeup circuitry verified, the High-Power Domain was populated and enabled through the validated wakeup logic. The buck/boost regulator was exercised under bench power while verifying the 4.0 V supply, regulator startup behavior, and the power-good sequencing responsible for enabling the downstream Control Domain. Temporary test loads consisting of LEDs mounted on the auxiliary breadboard were then used to characterize regulator performance under representative operating conditions before any high-power lighting hardware was installed on the PCB. Once stable regulator operation had been confirmed, development proceeded to the Control Domain while leaving the onboard LED arrays unpopulated.
+The buck/boost regulator and its supporting circuitry were assembled next, including the regulator enable circuitry and its pull-down resistor. During initial power-supply bring-up, the regulator's enable input was controlled by a simple toggle-switch circuit on the external breadboard. This provided convenient manual control of the 4.0 V supply without requiring the touch sensors or wakeup logic to be operational.
+
+The regulator was exercised under bench power while verifying the 4.0 V supply, regulator startup behavior, and power-good sequencing. Temporary LED loads on the breadboard were used to characterize regulator performance under representative operating conditions before any high-power lighting hardware was installed on the PCB.
 
 #### Control Domain
 
-The final stage of bring-up consisted of assembling the Control Domain around the microcontroller. Once the 3.3 V supply was verified, simple firmware validation routines were used to confirm processor startup, external memory operation, inertial measurement unit communication, battery monitoring, wireless communication, and LED driver operation. Individual peripherals were exercised independently before integrating the complete control system, allowing hardware and firmware development to proceed in parallel while maintaining confidence in each subsystem.
+With the power supply operating reliably, the Control Domain was assembled around the microcontroller. Once the 3.3 V supply was verified, simple firmware validation routines were used to confirm processor startup, external memory operation, inertial measurement unit communication, battery monitoring, wireless communication, and LED driver operation. Individual peripherals were exercised independently before integrating the complete control system, allowing hardware and firmware development to proceed in parallel while maintaining confidence in each subsystem.
 
-Only after the Control Domain had been fully validated were the onboard LED arrays mounted. Delaying installation of the production lighting hardware until the remainder of the system had been verified minimized debugging complexity while ensuring that any remaining issues could be isolated to the lighting circuitry itself.
+#### Always-On Domain
+
+The Always-On Domain was assembled and validated after the Control Domain. The 2.5 V standby supply was verified along with the touch sensors and wakeup logic responsible for controlling the High-Power Domain. These circuits were then integrated with the previously validated power-supply circuitry, replacing the temporary breadboard toggle with the Reactor's actual wakeup and power-latch mechanism.
+
+#### Onboard LED Arrays
+
+Only after the power, control, and wakeup systems had been validated were the onboard LED arrays installed. Delaying installation of the production lighting hardware minimized debugging complexity and ensured that any remaining issues could be isolated to the lighting circuitry itself.
 
 ### Startup Sequence Validation
 
