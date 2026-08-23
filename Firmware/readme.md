@@ -147,6 +147,113 @@ repeat
 
 The result is a deterministic shutdown sequence in which visible lighting, inter-cog shutdown, user input, persistent storage, and physical power removal occur in a defined order rather than independently.
 
+## Inter-Core Communication
+
+The Propeller provides two practical IPC mechanisms: the PAR register for simple command/parameter passing, and shared hub RAM protected by hardware semaphores for larger data transfers. Because most Reactor interfaces exchange multiple related values, the firmware primarily uses a lock-protected snapshot pattern.
+
+The producer processes and assembles a complete data product locally, acquires the lock, publishes the snapshot, and immediately releases the lock. The consumer copies the snapshot into local variables and then processes it without holding the lock.
+
+A typical producer/consumer exchange looks like this:
+
+```spin
+`process local data
+repeat until not lockset(LockID)
+buffer[0] := value0
+buffer[1] := value1
+buffer[2] := value2
+lockclr(LockID)
+```
+```spin
+repeat until not lockset(LockID)
+local0 := buffer[0]
+local1 := buffer[1]
+local2 := buffer[2]
+lockclr(LockID)
+'process local data
+```
+
+The lock protects the transfer, not the processing. Because lock acquisition is blocking, critical sections are kept as short as possible.
+
+### One-Way Snapshots
+
+This pattern is used throughout the firmware. The Sensor cog, for example, measures both touch sensors and publishes their hold times together every 20 ms:
+
+```spin
+lockset   LockID5 wc
+if_c      jmp       #$-1
+wrlong    aHold,    AaHold
+wrlong    bHold,    AbHold
+lockclr   LockID5
+```
+
+Publishing both measurements together gives Main a coherent snapshot from the same measurement cycle. Hold time is accumulated in 20 ms increments rather than tracked at the counter level, providing sufficient resolution for the 50 Hz touch state machine while keeping the acquisition code simple.
+
+The battery ADC uses the same transfer pattern, but the Sensor cog first averages a group of 64 measurements. It then publishes the completed result and a new-data flag:
+
+```spin
+shr       pwrLvl, #6
+lockset   LockID2 wc
+if_c      jmp       #$-1
+wrlong    pwrLvl,   ApwrLvl
+wrlong    newP,     AnewP
+lockclr   LockID2
+```
+
+This keeps the averaging workload on the Sensor cog and reduces the amount of data crossing the core boundary.
+
+The same approach scales to larger snapshots. Main constructs the complete LED rendering state and publishes it as a five-long snapshot under LockID1; the LED cog copies the snapshot into local state before rendering.
+
+The motion-processing path extends the pattern into a pipeline:
+
+Sensor → raw IMU snapshot → DMP → fused-motion snapshot → Main
+
+Each cog processes its own data locally and publishes only the resulting data product to the next stage.
+
+### Bidirectional BLE Mailbox
+
+The BLE interface requires a different pattern because communication occurs in both directions and individual transactions cannot safely be overwritten before they are consumed. Main and the BLE cog therefore share a larger mailbox protected by LockID6.
+
+Main publishes Reactor state for the BLE cog:
+
+```spin
+repeat until not lockset(LockID6)
+bleData[2] := colorMode
+bleData[3] := groundColor
+bleData[4] := lightMode
+bleData[5] := powerMode
+bleData[6] := brightMax
+bleData[7] := strobeRate
+bleData[8] := milliVolts
+bleData[9] := deciCelsius
+bleData[10] := brakeActive
+bleData[11] := leftTurnActive
+bleData[12] := rightTurnActive
+bleData[13] := flashActive
+bleData[14] := crashActive
+bleData[16] := otaAddress
+lockclr(LockID6)
+```
+
+The BLE cog uses the same mailbox to send configuration changes, commands, status information, and OTA data back to Main. A transaction flag indicates when new data is available.
+
+After publishing a transaction, the BLE cog waits for Main to acknowledge that the mailbox has been consumed:
+
+```spin
+repeat
+  repeat until not lockset(LockID6)
+  if (not long[bleDataAddr][0])
+    lockclr(LockID6)
+    quit
+  lockclr(LockID6)
+```
+
+The semaphore and transaction flag have separate roles. LockID6 provides mutual exclusion while the transaction flag provides producer/consumer synchronization. The acknowledgment prevents new BLE data from overwriting a pending transaction.
+
+The firmware therefore uses two closely related IPC patterns:
+
+One-way channels use snapshots: the producer publishes the latest complete state, and the consumer takes a local copy.
+The bidirectional BLE channel uses a handshaked mailbox: each side can produce and consume data, with an acknowledgment ensuring that each transaction is consumed before the mailbox is reused. Across all of these interfaces, the same principle keeps the multicore system manageable: process data locally, transfer compact and coherent data products, and keep synchronization confined to the smallest possible critical section.
+
 ---
 ## Engineering Challenges
 
