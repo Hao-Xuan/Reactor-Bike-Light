@@ -30,153 +30,37 @@ The Reactor mobile app provides centralized configuration and monitoring for mul
 
 This section is still under construction. Please come back later to see more highlights.
 
-## Power Management
-
-Reactor's main control firmware treats startup and shutdown as coordinated system-level processes rather than simply enabling or disabling individual peripherals. The same power-management logic that regulates LED output during normal operation also coordinates battery protection, thermal derating, user feedback, persistent state, and the controlled removal of power.
-
-### Unit Initialization
-
-A new Reactor unit begins with a newly programmed EEPROM containing the firmware and an installVerified flag indicating that the EEPROM has been installed in a new unit. The Propeller automatically boots the firmware after programming the EEPROM, so the initialization routine deliberately does not latch the main power on during this first execution. Instead, it records the installation as verified and remains in a holding loop until the touch sensors are released. This allows the development-board power to turn off after EEPROM programming without requiring a separate intervention.
-
-On the subsequent startup from the production board, the normal power latch is established and the full initialization sequence proceeds:
-
-```spin
-'check for new installation
-if (not installVerified)
-  installVerified~~
-  variableBackup(@installVerified,3+@installVerified)
-  repeat
-'latch main power
-outa[powerPin]~
-dira[powerPin]~~
-```
-
-The BLE control cog performs its own first-run initialization, configuring the radio, programming the Reactor characteristics, retrieving the module's unique identifier, and constructing the device serial number. The serial number is stored permanently in the BLE module's ROM, providing each Reactor with a persistent identity independent of the firmware image.
-
-### Continuous Power Supervision
-
-During normal operation, the Main cog continuously supervises battery voltage, temperature, user-selected brightness, and power-state commands. Battery voltage is derived from the raw ADC measurement using calibration endpoints established empirically across multiple Reactor boards. The calibrated voltage is then used both for battery indication and for low-voltage brightness derating.
-
-User brightness is represented by brightMax, with four app-selectable levels. The actual LED command, brightLvl, retains 16 levels. Under normal conditions the four user settings map to [0, 5, 10, 15], leaving intermediate levels available for thermal regulation:
-
-```spin
-if (deciCelsius>tempMax)
-  brightLvl--
-else
-  brightLvl++
-  brightLvl<#=(5*brightMax)
-```
-
-This separation allows thermal protection to reduce brightness gradually without visibly dropping the user to the next brightness setting. Battery derating instead reduces brightMax, producing a conspicuous brightness change that provides the rider with feedback that the battery is approaching depletion.
-
-The battery measurement itself is calibrated before being consumed by power management. The raw ADC value is shared between cogs through a locked mailbox, then converted from its calibrated ADC range into millivolts and a 0–255 battery-color index:
-
-```spin
-tempPowerLevel:=powerLevel
-newPowerData:=0
-
-milliVolts:=minVolt+delVolt*(tempPowerLevel-loVolt)/(hiVolt-loVolt)
-batteryColor:=(((milliVolts-minVolt)/4)#>0)<#255
-```
-
-The loVolt and hiVolt values represent empirically averaged ADC measurements corresponding to the 3.0 V and 4.2 V battery endpoints across approximately ten Reactor PCBs. This allows the firmware to convert the raw measurement into an estimate of actual battery voltage despite variation between physical boards.
-
-The power-management method also consumes commands produced by the touch state machine, including requests to display battery status, return to normal operation, and shut down. Commands from the BLE subsystem use an existing powerMode mailbox, with its otherwise-unused high bit carrying the application shutdown request:
-
-```spin
-if ((powerMode>>31)==1)
-  powerMode&=$7FFF_FFFF
-  powerStatus:=$FFFF_FFFF
-```
-
-This piggybacks the shutdown command onto an existing communication path rather than requiring an additional mailbox field.
-
-Power-state commands are passed to the LED control cog through a shared status word. The LED cog interprets these states independently, allowing the Main cog to supervise system power without directly controlling LED rendering.
-
-### Controlled Shutdown
-
-Shutdown is implemented as a coordinated sequence across the active cogs. The Main cog first signals the LED, BLE, and motion-processing cogs to perform their own shutdown routines. The LED cog immediately extinguishes the arrays, providing the user with visible confirmation that the shutdown command has been accepted, while the remaining shutdown sequence continues in the background.
-
-```spin
-'send power stop flag to led driver
-repeat until not lockset(LockID1)
-  ledData[0]|=$8000_0000
-lockclr(LockID1)
-'stop sensor fusion cog
-dmp.stop
-'stop led control cog
-waitcnt(cnt+clkfreq/10)
-led.stop
-```
-
-The 100 ms delays provide a conservative margin for each subsystem to complete its shutdown routine. The final delay also gives the EEPROM time to complete its persistent-state backup before the power latch is released. The delays were not precisely measured; 100 ms provided substantially more time than the operations required while remaining short enough to be imperceptible to the user.
-
-When shutdown is initiated by the five-second dual-touch gesture, the firmware waits for both sensors to be released before removing power:
-
-```spin
-if (touchState==7)
-  repeat
-    timerCheck
-    userTouch
-  until (touchState==0)
-```
-
-This ensures that the High-Power Domain is not physically shut down until the initiating input has returned to its inactive state. Since the LEDs have already been turned off, the user receives immediate feedback that the shutdown command was accepted and can naturally release the sensors.
-
-User configuration is normally saved during shutdown, but this step is skipped when installFlag indicates that new firmware has just been installed:
-
-```spin
-if (not installFlag)
-  variableBackup(@colorMode,3+@colorMode)
-  variableBackup(@groundColor,3+@groundColor)
-  variableBackup(@lightMode,3+@lightMode)
-  variableBackup(@calPitch,3+@calPitch)
-  variableBackup(@powerMode,3+@powerMode)
-  variableBackup(@strobeRate,3+@strobeRate)
-```
-
-The running firmware must relinquish control without overwriting persistent data during this transition. The user's configuration does not survive the firmware update itself, but the mobile application restores it when the updated Reactor reconnects.
-
-Finally, the Main cog releases the power latch and enters a permanent halt:
-
-```spin
-waitcnt(cnt+clkfreq/10)
-dira[powerPin]~
-repeat
-```
-
-The result is a deterministic shutdown sequence in which visible lighting, inter-cog shutdown, user input, persistent storage, and physical power removal occur in a defined order rather than independently.
-
 ## Inter-Core Communication
 
-The Propeller provides two practical IPC mechanisms: the PAR register for simple command/parameter passing, and shared hub RAM protected by hardware semaphores for larger data transfers. Because most Reactor interfaces exchange multiple related values, the firmware primarily uses a lock-protected snapshot pattern.
+The Reactor firmware uses shared hub RAM and the Propeller's hardware locks to exchange data between cogs. Inter-core data is organized into dedicated shared buffers rather than accessed directly as shared variables.
 
-The producer processes and assembles a complete data product locally, acquires the lock, publishes the snapshot, and immediately releases the lock. The consumer copies the snapshot into local variables and then processes it without holding the lock.
-
-A typical producer/consumer exchange looks like this:
+The basic pattern is simple: a producer builds a complete data snapshot, acquires a lock, copies the snapshot into hub RAM, and releases the lock. The consumer acquires the same lock, copies the snapshot into local variables, and releases the lock before processing it.
 
 ```spin
-`process local data
+'publish local data
 repeat until not lockset(LockID)
 buffer[0] := value0
 buffer[1] := value1
 buffer[2] := value2
 lockclr(LockID)
 ```
+
 ```spin
+'acquire local copy
 repeat until not lockset(LockID)
 local0 := buffer[0]
 local1 := buffer[1]
 local2 := buffer[2]
 lockclr(LockID)
+
 'process local data
 ```
 
-The lock protects the transfer, not the processing. Because lock acquisition is blocking, critical sections are kept as short as possible.
+The lock protects only the transfer. Because lock acquisition is blocking, the critical sections are kept as short as possible.
 
 ### One-Way Snapshots
 
-This pattern is used throughout the firmware. The Sensor cog, for example, measures both touch sensors and publishes their hold times together every 20 ms:
+Most inter-core communication uses this snapshot pattern. The Sensor cog publishes its touch-sensor data under `LockID5`:
 
 ```spin
 lockset   LockID5 wc
@@ -186,9 +70,7 @@ wrlong    bHold,    AbHold
 lockclr   LockID5
 ```
 
-Publishing both measurements together gives Main a coherent snapshot from the same measurement cycle. Hold time is accumulated in 20 ms increments rather than tracked at the counter level, providing sufficient resolution for the 50 Hz touch state machine while keeping the acquisition code simple.
-
-The battery ADC uses the same transfer pattern, but the Sensor cog first averages a group of 64 measurements. It then publishes the completed result and a new-data flag:
+The battery ADC uses the same pattern to publish its completed measurement and new-data flag:
 
 ```spin
 shr       pwrLvl, #6
@@ -199,21 +81,19 @@ wrlong    newP,     AnewP
 lockclr   LockID2
 ```
 
-This keeps the averaging workload on the Sensor cog and reduces the amount of data crossing the core boundary.
+Larger snapshots use the same mechanism. Main publishes the complete LED rendering state under `LockID1`, and the LED cog copies that state into local variables before rendering. The motion-processing path extends the pattern into a pipeline:
 
-The same approach scales to larger snapshots. Main constructs the complete LED rendering state and publishes it as a five-long snapshot under LockID1; the LED cog copies the snapshot into local state before rendering.
-
-The motion-processing path extends the pattern into a pipeline:
-
+```text
 Sensor → raw IMU snapshot → DMP → fused-motion snapshot → Main
+```
 
-Each cog processes its own data locally and publishes only the resulting data product to the next stage.
+Each cog processes its data locally and publishes only the resulting data product to the next stage.
 
-### Bidirectional BLE Mailbox
+### Bidirectional Mailbox
 
-The BLE interface requires a different pattern because communication occurs in both directions and individual transactions cannot safely be overwritten before they are consumed. Main and the BLE cog therefore share a larger mailbox protected by LockID6.
+The BLE interface requires a different pattern because it carries both continuous state and discrete transactions. Main and the BLE cog therefore share a larger mailbox protected by `LockID6`.
 
-Main publishes Reactor state for the BLE cog:
+Main uses the mailbox to publish the current Reactor state:
 
 ```spin
 repeat until not lockset(LockID6)
@@ -234,11 +114,46 @@ bleData[16] := otaAddress
 lockclr(LockID6)
 ```
 
-The BLE cog uses the same mailbox to send configuration changes, commands, status information, and OTA data back to Main. A transaction flag indicates when new data is available.
+This data is snapshot-oriented: Main is always free to overwrite it with newer state because the BLE cog is interested in the current value, not every intermediate value. The BLE cog decides when each characteristic should actually be notified to the application. A ground-light color change, battery-voltage change, or temperature change does not necessarily need to generate a BLE notification on every firmware cycle, allowing the BLE cog to throttle transmissions independently of the Main cog.
 
-After publishing a transaction, the BLE cog waits for Main to acknowledge that the mailbox has been consumed:
+The reverse direction is transaction-oriented. The BLE cog receives configuration changes, commands, status information, and OTA data from the application and places them into the same mailbox. A transaction flag in the first mailbox element indicates that new data is waiting, while the status field identifies which portions of the mailbox are valid. For OTA transactions, the mailbox can also carry the current update status and firmware data:
 
 ```spin
+'open ble data access lock
+  repeat until not lockset(LockID6)
+'send ble status data
+  long[bleDataAddr][0]~~
+  long[bleDataAddr][1]:=bleStatus
+'send color configuration data
+  if (bleStatus&(1<<5)<>0)
+    long[bleDataAddr][2]:=colorMode
+    long[bleDataAddr][3]:=colorIdx
+    long[bleDataAddr][4]:=lightMode
+'send power configuration data
+  if (bleStatus&(1<<6)<>0)
+    long[bleDataAddr][5]:=powerMode
+    long[bleDataAddr][6]:=brightMax
+    long[bleDataAddr][7]:=strobeRate
+'send reactions data
+  if (bleStatus&(1<<7)<>0)
+    long[bleDataAddr][10]:=brakeActive
+    long[bleDataAddr][11]:=leftTurnActive
+    long[bleDataAddr][12]:=rightTurnActive
+    long[bleDataAddr][13]:=flashActive
+    long[bleDataAddr][14]:=crashActive
+'send ota update data
+  if (bleStatus&(1<<8)<>0)
+    long[bleDataAddr][15]:=otaStatus
+    if ((otaStatus==1) or (otaStatus==2))
+      bytemove(otaBuffAddr,@otaBytes,18)
+'close ble data access lock
+  lockclr(LockID6)
+```
+
+Unlike Main's state snapshot, this data cannot safely be overwritten until Main has consumed it. After publishing a transaction, the BLE cog therefore waits for Main to clear the transaction flag:
+
+```spin
+'wait for receipt confirmation from main control
 repeat
   repeat until not lockset(LockID6)
   if (not long[bleDataAddr][0])
@@ -247,12 +162,374 @@ repeat
   lockclr(LockID6)
 ```
 
-The semaphore and transaction flag have separate roles. LockID6 provides mutual exclusion while the transaction flag provides producer/consumer synchronization. The acknowledgment prevents new BLE data from overwriting a pending transaction.
+The acknowledgment is intentionally asymmetric. `LockID6` provides mutual exclusion in both directions, but only BLE → Main requires transaction acknowledgment. Main can continuously publish newer Reactor state because intermediate snapshots do not need to be preserved. BLE, by contrast, must know that Main has consumed a discrete transaction before reusing the mailbox.
 
-The firmware therefore uses two closely related IPC patterns:
+This distinction is particularly important for OTA updates, where every firmware block must be consumed before the next block is transferred. The same mechanism also prevents application commands or configuration changes from being overwritten before Main processes them.
 
-One-way channels use snapshots: the producer publishes the latest complete state, and the consumer takes a local copy.
-The bidirectional BLE channel uses a handshaked mailbox: each side can produce and consume data, with an acknowledgment ensuring that each transaction is consumed before the mailbox is reused. Across all of these interfaces, the same principle keeps the multicore system manageable: process data locally, transfer compact and coherent data products, and keep synchronization confined to the smallest possible critical section.
+The result is two closely related IPC patterns:
+
+* One-way channels use snapshots: the producer publishes the latest complete state, and the consumer copies it locally.
+* The Main → BLE path uses the same snapshot semantics, while the BLE cog controls when those values are transmitted over the wireless link.
+* The BLE → Main path uses a handshaked mailbox: each transaction remains pending until Main acknowledges that it has been consumed.
+
+Across all of these interfaces, the same principle keeps the multicore system manageable: process data locally, exchange compact and coherent data products, and confine synchronization to the smallest possible critical section.
+
+## Finite State Machines
+
+The Reactor firmware uses finite state machines throughout the control system to turn continuous, timing-sensitive inputs into predictable behavior. The implementation is deliberately lightweight: each FSM maintains a numeric state variable, and a Spin `case` statement selects the behavior associated with that state. Most FSMs are evaluated once per Main loop at 50 Hz.
+
+### Touch Sensor Decoding
+
+The `touchState` FSM is the primary example. The touch-sensor cog measures how long each sensor has been held and publishes those values to Main. The `userTouch` method takes a snapshot of those timers and progressively interprets them as higher-level gestures.
+
+The initial states distinguish between no activity, one sensor being held, and both sensors being held:
+
+```spin
+case touchState
+  0:'no touch sensor activity
+    if ((tempABHold[0]<>0) and (tempABHold[1]==0))
+      touchState:=8                               'A-side touch detected
+    elseif ((tempABHold[0]==0) and (tempABHold[1]<>0))
+      touchState:=9                               'B-side touch detected
+    elseif ((tempABHold[0]<>0) and (tempABHold[1]<>0))
+      touchState:=10                              'both touches detected
+```
+
+From there, the FSM uses hold duration to distinguish between gestures. A single sensor held for more than one second enters a dedicated state:
+
+```spin
+8:'A-side held
+  if (tempABHold[1]==0)
+    if (tempABHold[0]==0)
+      touchState:=1                               'short A-side touch completed
+    elseif (tempABHold[0]>clkfreq)
+      touchState:=11                              'A-side held >1 second
+  else
+    touchState:=10                                'B-side touch added
+```
+
+Simultaneous touches are handled similarly. Releasing either sensor after a short dual touch produces one command, while holding both sensors beyond one second advances to another state:
+
+```spin
+10:'both sides held
+  if ((tempABHold[0]==0) or (tempABHold[1]==0))
+    touchState:=3                                 'short dual touch completed
+  else
+    if ((tempABHold[0]>clkfreq) and (tempABHold[1]>clkfreq))
+      touchState:=6                               'dual touch held >1 second
+```
+
+Longer gestures continue through additional states, including the five-second hold used to select power-off:
+
+```spin
+6:'both sides held for >1 sec (battery color selected)
+  if ((tempABHold[0]==0) or (tempABHold[1]==0))
+    touchState:=13                                'one sensor released
+  elseif ((tempABHold[0]>(5*clkfreq)) and (tempABHold[1]>(5*clkfreq)))
+    touchState:=7                                 'dual touch held >5 seconds
+```
+
+The important architectural result is that the rest of the firmware does not need to understand the raw touch timing. `touchState` acts as an abstraction layer between the physical inputs and the rest of the control system.
+
+Once a gesture has been decoded, the resulting operation can be very simple. The `userMode` method consumes the decoded states and modifies the appropriate user settings:
+
+```spin
+case touchState
+  4:'color mode change
+    blinkFlag~~
+    colorMode++
+    colorMode//=3
+
+  5:'power mode change
+    powerMode++
+    powerMode//=3
+```
+
+The numeric state values are effectively magic numbers because Spin does not provide enums, but the state-specific comments make the transitions explicit and keep the machines readable.
+
+The same basic architecture is used for physical behaviors, although some FSMs are considerably more sophisticated.
+
+### Brake Detection
+
+The `brakeState` FSM uses temporal hysteresis to prevent noisy acceleration measurements from causing the brake light to flicker. Once braking is detected, the debounce timer is continually restarted while the braking condition persists:
+
+```spin
+case brakeState
+    0:'no brake detected
+      if (brakeActive or (azB<brakeAcc))                'check for braking acceleration threshold
+        Bcnt:=(3*clkfreq/2)+cnt                         'set 1.5s debounce timer
+        brakeActive~~                                   'raise brakeActive flag
+        brakeState:=1                                   'transition to state 1
+    1:'brake detected
+      if (azB<brakeAcc)                                 'check for braking acceleration threshold
+        Bcnt:=(3*clkfreq/2)+cnt                         'restart debounce timer if still braking
+      else
+        if ((cnt-Bcnt)>0)                               'wait for debounce timer to expire
+          brakeActive~                                  'clear brakeActive flag
+          brakeState:=0                                 'transition to state 0
+    other:'error correction
+      brakeActive~                                      'reset brake signal state machine
+      brakeState:=0
+```
+
+The brake indication therefore remains active until the acceleration has stayed above the threshold for the full debounce interval, rather than responding directly to every threshold crossing.
+
+### Crash Detection
+
+The `crashState` FSM applies the same state-driven architecture to a more complicated problem: determining whether two independent sensor events constitute a crash. Rather than triggering on excessive roll or acceleration alone, the FSM requires both conditions to occur within a defined time window. Either event can arrive first.
+
+State 0 is the idle state. If excessive roll and acceleration are detected during the same cycle, the crash is immediately recognized. If only one event occurs, the FSM enters an intermediate state and waits for the other:
+
+```spin
+case crashState
+  0:'no active crash
+    if ((roll>crashRoll) or (roll<(-crashRoll)))
+      if (aTM>crashAcc)
+        crashActive~~
+        crashState:=3                           'both events detected
+      else
+        crashState:=1                           'roll detected; wait for acceleration
+    else
+      if (aTM>crashAcc)
+        crashState:=2                           'acceleration detected; wait for roll
+```
+
+State 1 handles the case where the roll event arrived first. The FSM continues waiting for excessive acceleration while the bike remains outside the upright range. If the roll condition clears before acceleration arrives, the machine can either continue waiting for acceleration or return to the idle state:
+
+```spin
+1:'roll event detected, waiting for acceleration event or roll reset
+  if ((roll>uprightRoll) or (roll<(-uprightRoll)))
+    if (aTM>crashAcc)
+      crashActive~~                             'both events now detected
+      Ccnt:=0
+      crashState:=3                             'begin crash settling period
+  else
+    if (aTM>crashAcc)
+      crashState:=2                             'acceleration arrived after roll recovered
+    else
+      crashState:=0                             'roll recovered; no crash
+```
+
+State 2 handles the opposite ordering: acceleration arrived first. The FSM waits for excessive roll while a five-second timeout limits how long the acceleration event remains valid:
+
+```spin
+2:'acceleration event detected, waiting for roll event or timeout
+  if ((roll>crashRoll) or (roll<(-crashRoll)))
+    crashActive~~                               'both events now detected
+    Ccnt:=0
+    crashState:=3                               'begin crash settling period
+  else
+    Ccnt++                                      'continue acceleration timeout
+    if (Ccnt>(5*hertz))
+      crashState:=0                             'timeout expired; cancel crash candidate
+      Ccnt:=0
+```
+
+Once both events have been correlated, the FSM does not immediately declare the crash condition settled. State 3 provides a ten-second settling period before moving to the recovery state:
+
+```spin
+3:'crash detected, counting settling time
+  Ccnt++
+  if (Ccnt>(10*hertz))
+    crashState:=4                               'crash settling period complete
+```
+
+State 4 then waits for the bike to return to an upright orientation before clearing the crash indication:
+
+```spin
+4:'crash settled, waiting for recovery
+  if ((roll<uprightRoll) and (roll>(-uprightRoll)))
+    crashState:=0                               'roll recovered
+    Ccnt:=0
+    crashActive~                                 'clear crash indication
+```
+
+An `other` case provides error correction by returning the FSM to its known idle state:
+
+```spin
+other:
+  Ccnt:=0
+  crashState:=0
+  crashActive~
+```
+
+The resulting state progression gives the crash detector several layers of protection against false positives: either roll or acceleration may initiate detection, the second event must arrive within a limited window, and a confirmed crash remains active through a settling period until the bike returns to an upright orientation. The FSM therefore converts noisy, asynchronous sensor events into a single stable system-level condition.
+
+Together, these state machines illustrate how the same lightweight mechanism can handle very different classes of control problems. While `touchState` translates user input into discrete commands, `brakeState` filters noisy sensor behavior over time, and `crashState` correlates multiple events into a stable system-level condition. Each FSM remains independently understandable, while more complex behavior emerges from their interaction.
+
+## Power Management
+
+Reactor's main control firmware treats power management as a coordinated system-level process rather than simply switching individual peripherals on and off. The Main cog supervises battery voltage, temperature, brightness, power-state commands, and the controlled shutdown of the entire system.
+
+### Startup
+
+On normal startup, the Main cog establishes the power latch before beginning normal operation:
+
+```spin
+'latch main power
+outa[powerPin]~
+dira[powerPin]~~
+```
+
+From this point, power management continuously supervises the conditions that determine whether the Reactor should remain fully powered, reduce its light output, or begin shutting down.
+
+### Continuous Power Supervision
+
+Battery voltage is derived from a calibrated ADC measurement shared by the sensor and Main cogs. The calibrated value is converted to millivolts and a 0–255 battery-color index:
+
+```spin
+  repeat until not lockset(LockID2)
+  if (newPowerData==0)
+    lockclr(LockID2)
+    status~                     'clear status if no new power data
+  else
+    tempPowerLevel:=powerLevel
+    newPowerData:=0
+    lockclr(LockID2)
+    milliVolts:=minVolt+delVolt*(tempPowerLevel-loVolt)/(hiVolt-loVolt)         'calculate battery voltage
+    batteryColor:=(((milliVolts-minVolt)/4)#>0)<#255                            'calculate battery color index
+    status~~                                                                    'raise battery level status flag
+```
+
+The `loVolt` and `hiVolt` calibration values represent empirically averaged ADC measurements corresponding to the 3.0 V and 4.2 V battery endpoints across approximately ten Reactor PCBs. This compensates for variation between physical boards while keeping the runtime conversion simple.
+
+Battery protection and thermal protection operate at different levels of the brightness hierarchy. `brightMax` represents the user's selected brightness level, while `brightLvl` provides finer-grained control for thermal regulation. Under normal conditions, the user's four brightness settings map to levels separated by five steps, leaving the intermediate levels available for gradual thermal derating:
+
+```spin
+if (deciCelsius>tempMax)
+  brightLvl--
+else
+  brightLvl++
+  brightLvl<#=(5*brightMax)
+```
+
+Thermal regulation can therefore reduce brightness gradually and restore it gradually as temperature changes. Battery derating instead reduces `brightMax`, producing a more noticeable reduction in output as the battery approaches its minimum operating voltage.
+
+### Controlled Shutdown
+
+Shutdown can be initiated in three ways: the user can hold both touch sensors for more than five seconds, the battery can fall below the minimum voltage after brightness has already been reduced to zero, or the application can issue a power-off command over BLE.
+
+All three conditions converge on the same `powerStop` routine:
+
+```spin
+'set power status and initiate power stop if indicated
+if ((powerMode>>31)==1)
+  powerMode&=$7FFF_FFFF
+  powerStatus:=$FFFF_FFFF
+
+if ((brightLvl<0) or (touchState==7) or (powerStatus==$FFFF_FFFF))
+  powerStop
+```
+
+This keeps the shutdown procedure independent of how shutdown was requested. The touch-sensor FSM supplies the five-second condition, the battery supervisor supplies the low-voltage condition, and the BLE subsystem passes the application command through the existing `powerMode` data path.
+
+`powerStop` then coordinates the active cogs before releasing the physical power latch. The LED cog is signaled first so that the LEDs are extinguished immediately, providing visible confirmation that shutdown has been accepted:
+
+```spin
+'send power stop flag to led driver
+repeat until not lockset(LockID1)
+ledData[0]|=$8000_0000
+lockclr(LockID1)
+
+'stop sensor fusion cog
+dmp.stop
+
+'stop led control cog
+waitcnt(cnt+clkfreq/10)
+led.stop
+```
+
+The shutdown sequence allows each subsystem to complete its own shutdown processing before power is removed. Conservative timing margins provide sufficient time for persistent-state backup and subsystem shutdown.
+
+When shutdown originates from the five-second dual-touch gesture, the Main cog also waits for both sensors to be released before removing power:
+
+```spin
+if (touchState==7)
+  repeat
+    timerCheck
+    userTouch
+  until (touchState==0)
+```
+
+This prevents the initiating gesture from remaining active as the High-Power Domain is disconnected. Because the LEDs have already been turned off, the user receives immediate confirmation and can naturally release the sensors.
+
+User configuration is normally saved during shutdown, but this step is skipped when a firmware installation has just completed. The `installFlag` prevents the newly installed firmware from overwriting the existing persistent configuration during the shutdown that immediately follows installation:
+
+```spin
+if (not installFlag)
+  variableBackup(@colorMode,3+@colorMode)
+  variableBackup(@groundColor,3+@groundColor)
+  variableBackup(@lightMode,3+@lightMode)
+  variableBackup(@calPitch,3+@calPitch)
+  variableBackup(@powerMode,3+@powerMode)
+  variableBackup(@strobeRate,3+@strobeRate)
+```
+
+Finally, the Main cog releases the power latch and enters a permanent halt:
+
+```spin
+waitcnt(cnt+clkfreq/10)
+dira[powerPin]~
+repeat
+```
+
+The result is a deterministic power lifecycle: the system starts by establishing its power domain, continuously manages battery and thermal constraints during operation, and funnels every shutdown condition through a single coordinated sequence before physically removing power.
+
+## Firmware Updates
+
+Reactor's firmware update system uses a two-stage process: the new firmware is first downloaded safely into a spare EEPROM bank, then explicitly installed into the active bank. The app supplies firmware data, but the Reactor controls the transfer, validates each block, and determines when it is safe to advance.
+
+The app distributes a precompiled JavaScript object containing the complete 32 kB firmware image, divided into 2,048 sixteen-byte blocks. Each block is transmitted as a 20-byte packet containing a two-byte address, sixteen bytes of firmware data, and a two-byte CRC.
+
+When an update begins, the Reactor initializes the transfer and requests the first block. The app responds with the block identified by the requested address. The BLE cog validates the address and CRC before publishing the packet to Main:
+
+```spin
+tOtaAddress:=256*otaBytes[0]+otaBytes[1]
+if (tOtaAddress==otaAddress)
+  crc:=0
+  repeat idx from 0 to 19
+    crcByte:=otaBytes[idx]<<8
+    crcIndex:=(crc^crcByte)>>8
+    crc:=(crc<<8)^word[@crcTable][crcIndex]
+  if (crc==0)
+    otaStatus:=2
+```
+
+The CRC is calculated across the entire 20-byte packet, including the transmitted CRC value, so a valid packet produces a zero remainder. If the address or CRC check fails, the Reactor requests the same block again rather than advancing the transfer.
+
+Once validated, the BLE cog publishes the packet through the inter-core mailbox. Main writes the sixteen firmware bytes to the spare EEPROM bank and **only then** advances `otaAddress`:
+
+```spin
+if (tOtaAddress==otaAddress)
+  ramToRom(2+@otaBytes,17+@otaBytes,32_768+otaAddress)
+  otaAddress+=16
+  variableBackup(@otaAddress,3+@otaAddress)
+```
+
+This makes `otaAddress` a persistent checkpoint rather than simply a counter. The address is advanced only after the corresponding block has been committed to EEPROM, and the new value is immediately backed up. If power is lost during the download, the primary EEPROM bank still contains the running firmware, while the saved address identifies the next block that needs to be transferred.
+
+An interrupted download can therefore resume without restarting from the beginning. The Reactor continues requesting blocks from its existing `otaAddress`, while the app simply supplies whatever block is requested.
+
+After all 2,048 blocks have been written successfully, the download is complete, but the new firmware is not installed automatically. Installation is a separate user-initiated operation. The complete image is copied from the spare EEPROM bank into the primary bank:
+
+```spin
+installFlag~~
+repeat idx from 0 to 255
+  romToRam(@updateBytes,127+@updateBytes,32_768+128*idx)
+  ramToRom(@updateBytes,127+@updateBytes,128*idx)
+waitcnt(cnt+clkfreq)
+powerStop
+```
+
+The installation takes approximately 30 seconds and intentionally blocks the firmware while the EEPROM transfer is performed. The running firmware remains in the primary bank until the complete image has already been downloaded and verified in the spare bank.
+
+The installation phase is the only part of the update process that cannot be safely interrupted. Once the transfer to the primary bank begins, removing power before it completes can leave the active firmware incomplete. The user therefore only needs to ensure that the Reactor's battery remains connected until installation finishes. Once the copy is complete, the Reactor enters its normal shutdown sequence, and the next power-on boots the newly installed firmware.
+
+The `installFlag` provides a final safeguard during this transition. Because the outgoing firmware is about to be replaced, `powerStop` skips its normal user-state backup when an update has just been installed. The flag itself does not survive the power cycle; the app can instead offer to restore the user's previous settings after the new firmware boots and reconnects.
+
+The result is a deliberately conservative update process: download, validate, commit, checkpoint, then install.
+
+Indexed packets provide sequencing, the CRC detects corrupted transmissions, the persistent `otaAddress` makes interrupted downloads resumable, and the spare EEPROM bank ensures that a failed download never overwrites the firmware currently running the Reactor.
 
 ---
 ## Engineering Challenges
