@@ -1,34 +1,32 @@
-## Firmware Architecture
-### Overview
+---
+# Firmware Architecture
+## Overview
 The embedded system runs on a multi-core MCU which operates separate cores for sensor acquisition, motion processing, main control, BLE communication, and LED control. These modules exchange data through buffers stored in main memory. Access to shared resources is synchronized using hardware locks to prevent concurrent access conflicts.
 
 <img width="1096" height="565" alt="reactor_architecture" src="https://github.com/user-attachments/assets/694fda7f-01dd-43af-bfd3-ad3f6f867c92" />
 
 **Figure 1** - High-level firmware architecture showing concurrent execution across the Propeller's eight processing cores
 
-### Sensors
+## Sensors
 The sensor core acquires data from three sensor arrays. Battery voltage is measured on the accumulator of a sigma-delta ADC circuit. User input is detected by timing the activation of touch sensors on the sides of the device. Acceleration, angular velocity, and temperature measurements are acquired over I2C from an IMU.
 
-### DMP
+## DMP
 The motion processing core applies digital filtering and sensor fusion to combine the accelerometer and gyroscope data into an estimate of sensor orientation. This estimate is transformed into the bicycle's frame of reference and combined with the filtered IMU measurements to calculate orientation, acceleration, and turn-rate in rider space.
 
-### Main
+## Main
 The main control core feeds the motion estimate, user input, battery voltage, and device temperature into a set of finite state machines responsible for motion detection, touch state, power management, and lighting behavior. The main core also manages system startup and persistent load/save operations.
 
-### LED
+## LED
 The LED rendering core drives the left and right LED arrays according to motion detection state, operation mode, brightness settings, and strobe configuration.
 
-### BLE
+## BLE
 The BLE control core manages UART communications between the main control core and the external BLE radio module. Incoming packets from the mobile app are verified with CRC before being applied to user settings or firmware updates. Motion events and local setting changes are encoded and transmitted through BLE characteristics to synchronize the connected app.
 
-### App
+## App
 The Reactor mobile app provides centralized configuration and monitoring for multiple connected devices mounted to the bicycle. Users can activate turn signals and warning flashers through touch or voice control, monitor battery voltage and device temperature, and automatically notify selected contacts with GPS location data when a crash is detected. Firmware updates are transferred wirelessly through the app and verified before installation.
 
 ---
-
-## Implementation Highlights
-
-This section is still under construction. Please come back later to see more highlights.
+# Implementation Highlights
 
 ## Inter-Core Communication
 
@@ -176,7 +174,7 @@ Across all of these interfaces, the same principle keeps the multicore system ma
 
 ## Finite State Machines
 
-The Reactor firmware uses finite state machines throughout the control system to turn continuous, timing-sensitive inputs into predictable behavior. The implementation is deliberately lightweight: each FSM maintains a numeric state variable, and a Spin `case` statement selects the behavior associated with that state. Most FSMs are evaluated once per Main loop at 50 Hz.
+The Reactor firmware uses finite state machines throughout the control system to turn continuous, timing-sensitive inputs into predictable behavior. The implementation is deliberately lightweight: each FSM maintains a numeric state variable, and a Spin `case` statement selects the behavior associated with that state. FSM states are evaluated once per Main loop at 50 Hz.
 
 ### Touch Sensor Decoding
 
@@ -272,7 +270,7 @@ case brakeState
       brakeState:=0
 ```
 
-The brake indication therefore remains active until the acceleration has stayed above the threshold for the full debounce interval, rather than responding directly to every threshold crossing.
+The brake indication therefore remains active until the braking acceleration condition has cleared and remained clear for the full debounce interval, rather than responding directly to every threshold crossing.
 
 ### Crash Detection
 
@@ -363,7 +361,7 @@ Reactor's main control firmware treats power management as a coordinated system-
 
 ### Startup
 
-On normal startup, the Main cog establishes the power latch before beginning normal operation:
+On normal startup, the first instruction executed by the Main cog establishes the system power latch governing `POWER_EN`:
 
 ```spin
 'latch main power
@@ -439,7 +437,7 @@ waitcnt(cnt+clkfreq/10)
 led.stop
 ```
 
-The shutdown sequence allows each subsystem to complete its own shutdown processing before power is removed. Conservative timing margins provide sufficient time for persistent-state backup and subsystem shutdown.
+The shutdown sequence allows each subsystem to complete its own shutdown processing before power is removed. The sequence includes conservative timing margins between subsystem shutdown operations and removal of power.
 
 When shutdown originates from the five-second dual-touch gesture, the Main cog also waits for both sensors to be released before removing power:
 
@@ -477,7 +475,7 @@ The result is a deterministic power lifecycle: the system starts by establishing
 
 ## Firmware Updates
 
-Reactor's firmware update system uses a two-stage process: the new firmware is first downloaded safely into a spare EEPROM bank, then explicitly installed into the active bank. The app supplies firmware data, but the Reactor controls the transfer, validates each block, and determines when it is safe to advance.
+Reactor's firmware update system uses a two-stage process: the new firmware is first downloaded safely into a spare EEPROM bank, then explicitly installed into the primary bank. The app supplies firmware data, but the Reactor controls the transfer, validates each block, and determines when it is safe to advance.
 
 The app distributes a precompiled JavaScript object containing the complete 32 kB firmware image, divided into 2,048 sixteen-byte blocks. Each block is transmitted as a 20-byte packet containing a two-byte address, sixteen bytes of firmware data, and a two-byte CRC.
 
@@ -521,9 +519,7 @@ waitcnt(cnt+clkfreq)
 powerStop
 ```
 
-The installation takes approximately 30 seconds and intentionally blocks the firmware while the EEPROM transfer is performed. The running firmware remains in the primary bank until the complete image has already been downloaded and verified in the spare bank.
-
-The installation phase is the only part of the update process that cannot be safely interrupted. Once the transfer to the primary bank begins, removing power before it completes can leave the active firmware incomplete. The user therefore only needs to ensure that the Reactor's battery remains connected until installation finishes. Once the copy is complete, the Reactor enters its normal shutdown sequence, and the next power-on boots the newly installed firmware.
+The installation takes approximately 30 seconds and intentionally blocks the firmware while the EEPROM transfer is performed. Unlike the download phase, the installation phase cannot be safely interrupted. Once the transfer to the primary bank begins, removing power before it finishes can leave the active firmware incomplete. The user therefore only needs to ensure that the Reactor's battery remains connected during installation. Once the copy is complete, the Reactor enters its normal shutdown sequence, and the next power-on boots the newly installed firmware.
 
 The `installFlag` provides a final safeguard during this transition. Because the outgoing firmware is about to be replaced, `powerStop` skips its normal user-state backup when an update has just been installed. The flag itself does not survive the power cycle; the app can instead offer to restore the user's previous settings after the new firmware boots and reconnects.
 
@@ -544,7 +540,7 @@ Developing reliable motion detection required both controlled testing and real-w
 Maintaining consistent real-time behavior required careful attention to timing and synchronization across multiple interacting subsystems. Firmware execution was instrumented using GPIO timing traces and runtime logging to identify bottlenecks, synchronization issues, and long-duration timing failures. Several issues related to counter rollover and inter-core coordination were identified and resolved during testing.
 
 ### BLE data integrity
-The BLE communication subsystem was designed to support telemetry, user control, and firmware updates while remaining robust against interruptions and corrupted data. CRC validation and resumable transfer mechanisms were implemented to improve reliability during firmware updates. Additional buffering and verification logic were added to reduce the likelihood of communication failures during long-duration operation.
+The BLE communication subsystem was designed to support telemetry, user control, and firmware updates while remaining robust against interruptions and corrupted data. CRC validation and resumable transfer mechanisms were implemented to improve reliability during firmware updates.
 
 ---
 ## Debugging & Validation
