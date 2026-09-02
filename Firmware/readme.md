@@ -71,7 +71,6 @@ lockclr   LockID5
 The battery ADC uses the same pattern to publish its completed measurement and new-data flag:
 
 ```spin
-shr       pwrLvl, #6
 lockset   LockID2 wc
 if_c      jmp       #$-1
 wrlong    pwrLvl,   ApwrLvl
