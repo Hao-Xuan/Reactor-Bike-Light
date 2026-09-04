@@ -42,7 +42,4 @@ The companion mobile application provides an optional interface between the ride
 
 **[Click Here for Mobile Details](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Mobile)**
 
-## Future Work
-This section is still under construction. Please come back later to learn more about the future of the Reactor Bike Light.
-
 ---
