@@ -129,7 +129,7 @@ The 3.3 V regulator is enabled by the ``+3V3_EN`` signal, which is driven by the
 
 The microcontroller coordinates every function within Reactor's electronic system. It receives sensor data from the inertial measurement unit, processes rider input from the touch sensors, manages wireless communications, monitors battery condition, retrieves configuration data from non-volatile memory, and generates lighting commands for the LED arrays. Figure 6 shows the microcontroller and its supporting circuitry, including the external crystal oscillator and local decoupling network required for reliable operation.
 
-<img width="603" height="632" alt="schematic_Control_Domain_MCU" src="https://github.com/user-attachments/assets/ece6e7aa-b6e8-4bd2-ad30-27eaa227fc2f" />
+<img width="573" height="571" alt="schematic_Control_Domain_MCU" src="https://github.com/user-attachments/assets/17a401b8-7c28-41ea-aec2-e76e5c982f81" />
 
 **Figure 7** - Propeller microcontroller and supporting circuitry
 
