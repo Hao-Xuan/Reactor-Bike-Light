@@ -27,6 +27,8 @@ The Reactor mobile app provides centralized configuration and monitoring for mul
 
 ---
 # Implementation Highlights
+The following sections highlight representative implementation details from the Reactor firmware, including inter-core communication, state-machine design, power management, and firmware updates. Selected Spin source code is also available in the [Propeller Spin Code Samples](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Firmware/Source/Spin_Propeller) for readers who want to examine the underlying implementation.
+
 
 ## Inter-Core Communication
 
@@ -530,7 +532,8 @@ Indexed packets provide sequencing, the CRC detects corrupted transmissions, the
 ## Engineering Challenges
 
 ### Real-time responsiveness constraints
-One of the primary engineering challenges was implementing a motion estimation pipeline that produced stable orientation estimates while remaining responsive enough for real-time lighting control. I evaluated both Kalman and complementary filtering approaches and ultimately selected a complementary filter due to its significantly lower computational cost. Extensive tuning and testing were required to balance responsiveness, stability, and noise rejection under real-world riding conditions.
+One of the primary engineering challenges was implementing a motion estimation pipeline that produced stable orientation estimates while remaining responsive enough for real-time lighting control. I evaluated both Kalman and complementary filtering approaches and ultimately selected a complementary filter for the production firmware due to its significantly lower computational cost. I also implemented a basic Kalman filter in C for the STM32 version of the firmware as a separate approach to IMU attitude estimation. The filter combines accelerometer and gyroscope measurements to estimate sensor orientation and includes explicit state prediction, covariance propagation, Kalman gain calculation, and state correction. The complete implementation is available in `imuFusion.c` with its corresponding interface in `imuFusion.h`, both of which may be viewed in the [STM32 C Code Samples](https://github.com/Hao-Xuan/Reactor-Bike-Light/tree/main/Firmware/Source/C_STM32). Extensive tuning and testing were required to balance responsiveness, stability, and noise rejection under real-world riding conditions.
+
 
 ### Real-world motion validation
 Developing reliable motion detection required both controlled testing and real-world validation. A desktop test rig was used to compare estimated orientation against known pitch and roll angles under quasi-static conditions, while live ride logging was used to tune filtering and motion thresholds during actual operation. These tests helped improve the reliability of braking, turning, and crash detection behaviors.
